@@ -12,6 +12,9 @@ import { NgxSpinnerService } from 'ngx-spinner';
   styleUrl: './leave-type.component.css'
 })
 export class LeaveTypeComponent {
+  userId: number = Number(sessionStorage.getItem('UserId'));
+
+  
    companies: Company[] = [];
   regions: Region[] = [];
 companyLoaded = false;
@@ -45,8 +48,8 @@ companyMap: { [key: number]: string } = {};
   ngOnInit(): void {
     this.loadRegions();
     this.loadCompanies();
-    
-    this.loadLeaveType();
+    this.loadLeaveType(); 
+
   }
 
   // ================= MASTER DATA =================
@@ -97,8 +100,10 @@ loadLeaveType(): void {
     Swal.fire('Error', 'Failed to load Leave Types.', 'error');
   }
 });
-
+ 
 }
+
+
 
   onSubmit(): void {
  
@@ -296,16 +301,26 @@ onBulkUploadComplete(event: any) {
   this.loadLeaveType();
 }
 loadCompanies(): void {
-    this.admin.getCompanies().subscribe({
-      next: (res:any) => (this.companies = res),
-      error: () => Swal.fire('Error', 'Failed to load companies.', 'error')
-    });
   }
 
-  loadRegions(): void {
-    this.admin.getRegions().subscribe({
-      next: (res:any) => (this.regions = res),
-      error: () => Swal.fire('Error', 'Failed to load regions.', 'error')
-    });
+  this.admin.getCompanies(null, this.userId).subscribe({
+    next: (res:any) => this.companies = res,
+    error: () => Swal.fire('Error', 'Failed to load companies.', 'error')
+  });
+}
+
+
+loadRegions(): void {
+
+  if (!this.userId) {
+    Swal.fire('Error', 'UserId not found. Please login again.', 'error');
+    return;
   }
+
+  this.admin.getRegions(null, this.userId).subscribe({
+    next: (res:any) => this.regions = res,
+    error: () => Swal.fire('Error', 'Failed to load regions.', 'error')
+  });
+}
+
 }
