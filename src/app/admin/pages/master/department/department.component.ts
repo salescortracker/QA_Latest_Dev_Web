@@ -17,6 +17,7 @@ export class DepartmentComponent {
   departments: any[] = [];
   companies: any[] = [];
   regions: any[] = [];
+  filteredRegions: any[] = [];
 
   // Form Model
   department: any = this.getEmptyDepartment();
@@ -66,6 +67,20 @@ userId: number = sessionStorage.getItem('UserId') ? Number(sessionStorage.getIte
       error: () => Swal.fire('Error', 'Failed to load departments.', 'error')
     });
   }
+  onCompanyChange(): void {
+
+  if (!this.department.companyId) {
+    this.filteredRegions = [];
+    this.department.regionId = '';
+    return;
+  }
+
+  this.filteredRegions = this.regions.filter(r =>
+    r.companyID === Number(this.department.companyId)
+  );
+
+  this.department.regionId = '';
+}
 
   loadCompanies(): void {
     this.departmentService.getCompanies(null,this.userId).subscribe({
@@ -75,11 +90,19 @@ userId: number = sessionStorage.getItem('UserId') ? Number(sessionStorage.getIte
   }
 
   loadRegions(): void {
-    this.departmentService.getRegions(null,this.userId).subscribe({
-      next: (res:any) => (this.regions = res),
-      error: () => Swal.fire('Error', 'Failed to load regions.', 'error')
-    });
-  }
+  this.departmentService.getRegions(null, this.userId).subscribe({
+    next: (res: any) => {
+      this.regions = res;
+
+      if (this.department.companyId) {
+        this.filteredRegions = this.regions.filter(r =>
+          r.companyID === Number(this.department.companyId)
+        );
+      }
+    },
+    error: () => Swal.fire('Error', 'Failed to load regions.', 'error')
+  });
+}
 
   // ------------------------------------------------------------
   // 🔹 Create / Update Department
@@ -113,6 +136,9 @@ userId: number = sessionStorage.getItem('UserId') ? Number(sessionStorage.getIte
   editDepartment(d: any): void {
     this.department = { ...d };
     this.isEditMode = true;
+    this.filteredRegions = this.regions.filter(r =>
+    r.companyID === Number(this.department.companyId)
+  );
   }
 
   deleteDepartment(d: any): void {
@@ -156,6 +182,7 @@ userId: number = sessionStorage.getItem('UserId') ? Number(sessionStorage.getIte
   resetForm(): void {
     this.department = this.getEmptyDepartment();
     this.isEditMode = false;
+    this.filteredRegions = [];
   }
 
   // ------------------------------------------------------------
