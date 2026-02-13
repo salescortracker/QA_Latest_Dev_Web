@@ -259,11 +259,17 @@ export interface LeaveType {
   RegionID: number;
 }
 export interface ExpenseStatus {
-  ExpenseStatusID: number;
-  ExpenseStatusName: string;
-  IsActive: boolean;
-  CompanyID: number;
-  RegionID: number;
+  expenseStatusId: number;
+  expenseStatusName: string;
+  description: string;
+  isActive: boolean;
+  companyId: number;
+  regionId: number;
+  IsDeleted?: boolean;
+  CreatedBy?: number;
+  CreatedAt?: Date;
+  ModifiedBy?: number;
+  ModifiedAt?: Date;
 }
 export interface Company {
   companyId: number;
@@ -1107,20 +1113,35 @@ deleteLeaveType(id: number) {
 // EXPENSE STATUS CRUD
 
 getExpenseStatus(companyId: number, regionId: number) {
-  return this.http.get<any>(`${this.baseUrl}/GetExpenseStatus?companyId=${companyId}&regionId=${regionId}`);
+  return this.http.get<any>(`${this.baseUrl}/Expenses/GetExpenseStatus?companyId=${companyId}&regionId=${regionId}`);
 }
 
-createExpenseStatus(data: ExpenseStatus) {
-  return this.http.post<any>(`${this.baseUrl}/CreateExpenseStatus`, data);
+// createExpenseStatus(data: ExpenseStatus) {
+//   return this.http.post<any>(`${this.baseUrl}/Expenses/CreateExpenseStatus`, data);
+// }
+createExpenseStatus(data: ExpenseStatus, userId: number) {
+  return this.http.post<any>(
+    `${this.baseUrl}/Expenses/CreateExpenseStatus?userId=${userId}`,
+    data
+  );
 }
 
 updateExpenseStatus(data: ExpenseStatus) {
-  return this.http.put<any>(`${this.baseUrl}/UpdateExpenseStatus`, data);
+  return this.http.put<any>(`${this.baseUrl}/Expenses/UpdateExpenseStatus`, data);
 }
 
 deleteExpenseStatus(id: number) {
-  return this.http.delete<any>(`${this.baseUrl}/DeleteExpenseStatus/${id}`);
+  return this.http.delete<any>(`${this.baseUrl}/Expenses/DeleteExpenseStatus/${id}`);
 }
+
+getExpenseStatusByUser(userId: number) {
+  return this.http.get<any>(
+    `${this.baseUrl}/Expenses/GetExpenseStatusByUser?userId=${userId}`
+  );
+}
+
+
+
  // ------------------ EXPENSE CATEGORY TYPE ------------------
 
 createExpenseCategoryType(model: ExpenseCategory) {
