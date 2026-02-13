@@ -70,9 +70,16 @@ export class AssetService {
   }
  // ✅ NEW: Get all employees
 
-getAllEmployees$(): Observable<EmployeeDto[]> {
-    return this.http.get<EmployeeDto[]>(`${this.apiUrl}/employees`);
+// getAllEmployees$(): Observable<EmployeeDto[]> {
+//     return this.http.get<EmployeeDto[]>(`${this.apiUrl}/employees`);
+// }
+
+getEmployeesByCompanyRegion$(companyId: number, regionId: number): Observable<EmployeeDto[]> {
+  return this.http.get<EmployeeDto[]>(
+    `${this.apiUrl}/employees?companyId=${companyId}&regionId=${regionId}`
+  );
 }
+
 // ✅ Manager – get pending approvals
 getPendingApprovals$(managerUserId: number): Observable<AssetDto[]> {
   const params = new HttpParams().set('managerUserId', managerUserId);
