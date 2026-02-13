@@ -31,7 +31,7 @@ export class ExpenseStatusComponent {
   pageSize = 5;
 
   // Sorting
-  sortColumn = 'ExpenseStatusID';
+  sortColumn = 'expenseStatusId';
   sortDirection: 'asc' | 'desc' = 'desc';
 
   showUploadPopup = false;
@@ -39,34 +39,59 @@ export class ExpenseStatusComponent {
   constructor(private admin: AdminService, private spinner: NgxSpinnerService) {}
 
   ngOnInit(): void {
+      const userId = Number(sessionStorage.getItem('UserId'));
+
     this.loadExpenseStatus();
   }
 
-  getEmptyExpense(): ExpenseStatus {
-    return {
-      ExpenseStatusID: 0,
-      ExpenseStatusName: '',
-      IsActive: true,
-      CompanyID: this.companyId,
-      RegionID: this.regionId
-    };
-  }
+getEmptyExpense(): ExpenseStatus {
+  return {
+    expenseStatusId: 0,
+    expenseStatusName: '',
+    description: '',
+    isActive: true,
+    companyId: this.companyId,
+    regionId: this.regionId,
+    CreatedBy: Number(sessionStorage.getItem('UserId'))
+  };
+}
+
+
+
+  // loadExpenseStatus(): void {
+  //   this.spinner.show();
+  //   this.admin.getExpenseStatus(this.companyId, this.regionId).subscribe({
+  //     next: res => {
+  //       this.expenseList = res;
+  //       console.log('Expense Status loaded:', res);
+  //       this.spinner.hide();
+  //     },
+  //     error: () => {
+  //       this.spinner.hide();
+  //       Swal.fire('Error', 'Failed to load Expense Status', 'error');
+  //     }
+  //   });
+  // }
 
   loadExpenseStatus(): void {
-    this.spinner.show();
-    this.admin.getExpenseStatus(this.companyId, this.regionId).subscribe({
-      next: res => {
-        this.expenseList = res.data?.data || res;
-        this.spinner.hide();
-      },
-      error: () => {
-        this.spinner.hide();
-        Swal.fire('Error', 'Failed to load Expense Status', 'error');
-      }
-    });
-  }
+    
+  this.spinner.show();
+  const userId = Number(sessionStorage.getItem('UserId'));
+  this.admin.getExpenseStatusByUser(userId).subscribe({
+    next: res => {
+      this.expenseList = res;
+      this.spinner.hide();
+    },
+    error: () => {
+      this.spinner.hide();
+      Swal.fire('Error', 'Failed to load Expense Status', 'error');
+    }
+  });
+}
+
 
   onSubmit(): void {
+   
     this.spinner.show();
 
     if (this.isEditMode) {
@@ -84,15 +109,21 @@ export class ExpenseStatusComponent {
       });
 
     } else {
-      this.admin.createExpenseStatus(this.expense).subscribe({
+       this.expense.companyId = this.companyId;
+       this.expense.regionId = this.regionId;
+this.expense.CreatedBy = Number(sessionStorage.getItem('UserId'));
+
+      this.admin.createExpenseStatus(this.expense, this.expense.CreatedBy).subscribe({
+
         next: () => {
           Swal.fire('Created!', 'Expense Status saved successfully!', 'success');
           this.loadExpenseStatus();
           this.resetForm();
           this.spinner.hide();
         },
-        error: () => {
-          Swal.fire('Error', 'Create failed', 'error');
+        error: (err) => {
+          console.error(err);
+          Swal.fire('Error', err.error?.message || 'Create failed', 'error');
           this.spinner.hide();
         }
       });
@@ -105,14 +136,15 @@ export class ExpenseStatusComponent {
   }
 
   deleteExpense(item: ExpenseStatus): void {
+    
     Swal.fire({
-      title: `Delete "${item.ExpenseStatusName}"?`,
+      title: `Delete "${item.expenseStatusName}"?`,
       showCancelButton: true,
       confirmButtonText: 'Delete'
     }).then(res => {
       if (res.isConfirmed) {
         this.spinner.show();
-        this.admin.deleteExpenseStatus(item.ExpenseStatusID).subscribe({
+        this.admin.deleteExpenseStatus(item.expenseStatusId).subscribe({
           next: () => {
             Swal.fire('Deleted!', 'Expense Status deleted', 'success');
             this.loadExpenseStatus();
@@ -134,8 +166,8 @@ export class ExpenseStatusComponent {
 
   filteredExpense(): ExpenseStatus[] {
     return this.expenseList.filter(x => {
-      const matchText = x.ExpenseStatusName.toLowerCase().includes(this.searchText.toLowerCase());
-      const matchStatus = this.statusFilter === '' || x.IsActive === this.statusFilter;
+      const matchText = x.expenseStatusName.toLowerCase().includes(this.searchText.toLowerCase());
+      const matchStatus = this.statusFilter === '' || x.isActive === this.statusFilter;
       return matchText && matchStatus;
     });
   }
@@ -188,8 +220,8 @@ export class ExpenseStatusComponent {
 
   exportExcel() {
     const data = this.expenseList.map(c => ({
-      'Expense Status Name': c.ExpenseStatusName,
-      'Active': c.IsActive ? 'Yes' : 'No'
+      'Expense Status Name': c.expenseStatusName,
+      'Active': c.isActive ? 'Yes' : 'No'
     }));
 
     const ws = XLSX.utils.json_to_sheet(data);
@@ -201,7 +233,7 @@ export class ExpenseStatusComponent {
 
   exportPDF() {
     const doc = new jsPDF();
-    const data = this.expenseList.map(c => [c.ExpenseStatusName, c.IsActive ? 'Yes' : 'No']);
+    const data = this.expenseList.map(c => [c.expenseStatusName, c.isActive ? 'Yes' : 'No']);
 
     autoTable(doc, {
       head: [['Expense Status', 'Active']],
