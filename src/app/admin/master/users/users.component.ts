@@ -12,6 +12,7 @@ export class UsersComponent {
    users: User[] = [];
   companies: Company[] = [];
   regions: Region[] = [];
+  filteredRegions: Region[] = [];
   roles: RoleMaster[] = [];
   user: User = this.getEmptyUser();
   isEditMode = false;
@@ -84,12 +85,35 @@ this.generateNextEmployeeCode();
     });
   }
 
+  onCompanyChange(): void {
+
+    if (!this.user.companyId) {
+      this.filteredRegions = [];
+      this.user.regionId = 0;
+      return;
+    }
+
+    this.filteredRegions = this.regions.filter(r =>
+      r.companyID === Number(this.user.companyId)
+    );
+    this.user.regionId = 0;
+  }
+
   loadRegions(): void {
-    this.userService.getRegions(null,this.userId).subscribe({
-      next: (res: any) => (this.regions = res),
+    this.userService.getRegions(null, this.userId).subscribe({
+      next: (res: any) => {
+        this.regions = res;
+
+        if (this.user.companyId) {
+          this.filteredRegions = this.regions.filter(r =>
+            r.companyID === Number(this.user.companyId)
+          );
+        }
+      },
       error: () => this.showError('Failed to load regions.')
     });
   }
+
 
   loadRoles(): void {
     this.userService.getroles().subscribe({
@@ -151,6 +175,9 @@ this.generateNextEmployeeCode();
   editUser(u: User): void {
     this.user = { ...u };
     this.isEditMode = true;
+    this.filteredRegions = this.regions.filter(r =>
+      r.companyID === Number(this.user.companyId)
+    );
   }
 
   deleteUser(u: User): void {
@@ -191,6 +218,7 @@ this.generateNextEmployeeCode();
   resetForm(): void {
     this.user = this.getEmptyUser();
     this.isEditMode = false;
+    this.filteredRegions = [];
   }
 
   getCompanyName(id: number): string {

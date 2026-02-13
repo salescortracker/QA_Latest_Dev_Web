@@ -68,7 +68,7 @@
             <!-- Company -->
             <div class="col-md-6">
               <label class="form-label fw-semibold">Company</label>
-              <select class="form-select" [(ngModel)]="designation.companyId" name="companyId" required>
+              <select class="form-select" [(ngModel)]="designation.companyId" name="companyId" (change)="onCompanyChange()" required>
                 <option value="">Select Company</option>
                 <option *ngFor="let company of companies" [value]="company.companyId">
                   {{ company.companyName }}
@@ -81,7 +81,7 @@
               <label class="form-label fw-semibold">Region</label>
               <select class="form-select" [(ngModel)]="designation.regionId" name="regionId">
                 <option value="">Select Region</option>
-                <option *ngFor="let region of regions" [value]="region.regionID">
+                <option *ngFor="let region of filteredRegions" [value]="region.regionID">
                   {{ region.regionName }}
                 </option>
               </select>
@@ -193,13 +193,12 @@
 </thead>
 
             <tbody>
-              <tr *ngFor="let d of pagedDesignations; let i = index">
+              <tr *ngFor="let d of designations; let i = index">
                 <td>{{ (currentPage - 1) * pageSize + i + 1 }}</td>
                 <td>{{ d.designationName }}</td>
                 <td>{{ d.description }}</td>
-               
-                <td>{{ getCompanyName(d.companyId) }}</td>
-                <td>{{ getRegionName(d.regionId) }}</td>
+                <td>{{ d.companyName }}</td>
+                <td>{{ d.regionName }}</td>
                 <td class="text-center">
                   <span class="badge" [ngClass]="d.isActive ? 'bg-success' : 'bg-secondary'">
                     {{ d.isActive ? 'Active' : 'Inactive' }}

@@ -38,31 +38,51 @@ export class DesignationComponent {
     this.loadCompanies();
     this.loadRegions();
     this.loadDesignations();
-     
+    this.userId = sessionStorage.getItem('UserId')
+    ? Number(sessionStorage.getItem('UserId'))
+    : 0;    
   }
 companies:any;
 regions:any;
+filteredRegions: any[] = [];
   loadCompanies(): void {
-    debugger;
     this.adminservice.getCompanies(null,this.userId).subscribe({
       next: (res:any) => (this.companies = res),
       error: () => Swal.fire('Error', 'Failed to load companies.', 'error')
     });
   }
+  onCompanyChange(): void {
+
+  if (!this.designation.companyId) {
+    this.filteredRegions = [];
+    this.designation.regionId = 0;
+    return;
+  }
+
+  this.filteredRegions = this.regions.filter((r: any) =>
+    r.companyID === Number(this.designation.companyId) || r.companyId === Number(this.designation.companyId)
+  );
+
+  this.designation.regionId = 0; 
+}
 
   loadRegions(): void {
-    this.adminservice.getRegions(null,this.userId).subscribe({
-      next: (res:any) => (this.regions = res),
-      error: () => Swal.fire('Error', 'Failed to load regions.', 'error')
-    });
-  }
+  this.adminservice.getRegions(null, this.userId).subscribe({
+    next: (res: any) => {
+      this.regions = res;
+      this.filteredRegions = [];
+    },
+    error: () => Swal.fire('Error', 'Failed to load regions.', 'error')
+  });
+}
   getCompanyName(companyId: number): string {
-    const c = this.companies.find((x:any) => x.companyID === companyId);
+    const c = this.companies.find((x:any) => x.companyID === companyId || x.companyId === companyId);
     return c ? c.companyName : '-';
   }
 
   getRegionName(regionId: number): string {
-    const r = this.regions.find((x:any) => x.regionId === regionId);
+    if (!regionId) return '-';
+    const r = this.regions.find((x:any) => x.regionId === regionId || x.regionID === regionId);
     return r ? r.regionName : '-';
   }
   // 🔹 Bulk Upload Model for Template
@@ -85,7 +105,10 @@ regions:any;
       regionId: 0,
       designationName: '',
       description: '',
-      isActive: true
+      isActive: true,
+      userCompanyId: this.userId,
+      companyName: '',
+      regionName: ''
     };
   }
  changePageSize(event: any): void {
@@ -99,7 +122,6 @@ regions:any;
   // ------------------------------------------------------------
   // 🔹 Load All Designations
   // ------------------------------------------------------------
-
   // ...
 
   // Sorting
@@ -110,53 +132,82 @@ regions:any;
   // Load Designations
   // ------------------------------------------
   loadDesignations(): void {
-    this.spinner.show();
-    this.adminservice.getDesignations().subscribe({
-      next: (res: any) => {
-        // sort by ID descending (latest first)
-        this.designations = res.data.data.sort((a: any, b: any) => b.designationID - a.designationID);
-        this.spinner.hide();
-      },
-      error: (err) => {
-        console.error('Error loading designations:', err);
-        this.spinner.hide();
-      }
-    });
-  }
+  this.spinner.show();
 
+  // 👇 PASS userId here
+  this.adminservice.getDesignations(this.userId).subscribe({
+    next: (res: any) => {
+
+      let data = res.data;
+
+      data.sort((a: any, b: any) => b.designationID - a.designationID);
+
+      this.designations =res.data;
+ 
+      this.spinner.hide();
+    },
+    error: (err) => {
+      console.error('Error loading designations:', err);
+      this.spinner.hide();
+    }
+  });
+}
   // ------------------------------------------------------------
   // 🔹 Submit Form - Add or Update
   // ------------------------------------------------------------
   onSubmit(): void {
-    this.spinner.show();
-    if (this.isEditMode) {
-      this.adminservice.updateDesignation(this.designation.designationID, this.designation).subscribe({
-        next: () => {
-          this.spinner.hide();
-          Swal.fire('Success', `${this.designation.designationName} updated successfully!`, 'success');
-          this.loadDesignations();
-          this.resetForm();
-        },
-        error: () => {
-          this.spinner.hide();
-          Swal.fire('Error', 'Update failed! Please contact IT Administrator.', 'error');
-        }
-      });
-    } else {
-      this.adminservice.createDesignation(this.designation).subscribe({
-        next: () => {
-          this.spinner.hide();
-          Swal.fire('Success', `${this.designation.designationName} added successfully!`, 'success');
-          this.loadDesignations();
-          this.resetForm();
-        },
-        error: () => {
-          this.spinner.hide();
-          Swal.fire('Error', 'Create failed! Please contact IT Administrator.', 'error');
-        }
-      });
-    }
+
+  this.spinner.show();
+
+  // 👇 Always attach userId before sending
+  this.designation.userCompanyId = this.userId;
+
+  if (this.isEditMode) {
+
+    this.adminservice.updateDesignation(
+      this.designation.designationID,
+      this.designation,
+      this.userId        // 👈 PASS userId
+    ).subscribe({
+      next: () => {
+        this.spinner.hide();
+        Swal.fire('Success',
+          `${this.designation.designationName} updated successfully!`,
+          'success');
+        this.loadDesignations();
+        this.resetForm();
+      },
+      error: () => {
+        this.spinner.hide();
+        Swal.fire('Error',
+          'Update failed! Please contact IT Administrator.',
+          'error');
+      }
+    });
+
+  } else {
+
+    this.adminservice.createDesignation(
+      this.designation,
+      this.userId       
+    ).subscribe({
+      next: () => {
+        this.spinner.hide();
+        Swal.fire('Success',
+          `${this.designation.designationName} added successfully!`,
+          'success');
+        this.loadDesignations();
+        this.resetForm();
+      },
+      error: () => {
+        this.spinner.hide();
+        Swal.fire('Error',
+          'Create failed! Please contact IT Administrator.',
+          'error');
+      }
+    });
   }
+}
 
   // ------------------------------------------------------------
   // 🔹 Edit Designation
@@ -164,33 +215,48 @@ regions:any;
   editDesignation(d: Designation): void {
     this.designation = { ...d };
     this.isEditMode = true;
+    this.filteredRegions = this.regions.filter((r: any) =>
+    r.companyID === Number(this.designation.companyId) || r.companyId === Number(this.designation.companyId)
+  );
   }
 
   // ------------------------------------------------------------
   // 🔹 Delete (Soft Delete)
   // ------------------------------------------------------------
   deleteDesignation(d: Designation): void {
-    Swal.fire({
-      title: `Are you sure you want to delete ${d.designationName}?`,
-      showDenyButton: true,
-      confirmButtonText: 'Confirm'
-    }).then((result) => {
-      if (result.isConfirmed) {
-        this.spinner.show();
-        this.adminservice.deleteDesignation(d.designationID).subscribe({
-          next: () => {
-            this.spinner.hide();
-            Swal.fire('Deleted!', `${d.designationName} deleted successfully.`, 'success');
-            this.loadDesignations();
-          },
-          error: () => {
-            this.spinner.hide();
-            Swal.fire('Error', 'Delete failed! Please contact IT Administrator.', 'error');
-          }
-        });
-      }
-    });
-  }
+  Swal.fire({
+    title: `Are you sure you want to delete ${d.designationName}?`,
+    showDenyButton: true,
+    confirmButtonText: 'Confirm'
+  }).then((result) => {
+
+    if (result.isConfirmed) {
+
+      this.spinner.show();
+
+      // 👇 PASS userId
+      this.adminservice.deleteDesignation(
+        d.designationID,
+        this.userId
+      ).subscribe({
+        next: () => {
+          this.spinner.hide();
+          Swal.fire('Deleted!',
+            `${d.designationName} deleted successfully.`,
+            'success');
+          this.loadDesignations();
+        },
+        error: () => {
+          this.spinner.hide();
+          Swal.fire('Error',
+            'Delete failed! Please contact IT Administrator.',
+            'error');
+        }
+      });
+    }
+  });
+}
+
 
   // ------------------------------------------------------------
   // 🔹 Reset Form

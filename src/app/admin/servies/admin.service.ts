@@ -181,6 +181,10 @@ export interface Designation {
   modifiedBy?: string;
   modifiedAt?: Date;
   isDeleted?: boolean;
+  userCompanyId?: number;
+  companyName: string;
+  regionName: string; 
+  
 }
 
 export interface AssetStatus {
@@ -832,27 +836,33 @@ deleteDepartment(id: number): Observable<any> {
   return this.http.post(`/MasterData/DeleteDepartment/${id}`, {}); // soft delete
 }
 
-getDesignations(): Observable<Designation[]> {
-  return this.getAll<Designation>(`MasterData/GetDesignations`);
+getDesignations(userId: number) {
+  return this.http.get<any>(
+    `${this.baseUrl}/MasterData/GetDesignations?userId=${userId}`
+  );
 }
-
 getDesignationById(id: number): Observable<Designation> {
   return this.getById<Designation>(`MasterData/GetDesignationById`, id);
 }
 
-createDesignation(model: Designation): Observable<any> {
-  return this.create<Designation>(`MasterData/CreateDesignation`, model);
+createDesignation(data: Designation, userId: number) {
+  return this.http.post(
+    `${this.baseUrl}/MasterData/CreateDesignation`,
+    { ...data, userId }
+  );
 }
-
-updateDesignation(id: number, model: Designation): Observable<any> {
-  return this.update<Designation>(`MasterData/UpdateDesignation`, id, model);
+updateDesignation(id: number, data: Designation, userId: number) {
+  return this.http.post(
+    `${this.baseUrl}/MasterData/UpdateDesignation/${id}`,
+    { ...data, userId }
+  );
 }
-
-deleteDesignation(id: number): Observable<any> {
-  // Using POST for soft delete pattern as per your Department delete
-  return this.http.post(`${this.baseUrl}/MasterData/DeleteDesignation/${id}`,{} );
+deleteDesignation(id: number, userId: number) {
+  return this.http.post(
+    `${this.baseUrl}/MasterData/DeleteDesignation/${id}?userId=${userId}`,
+    {}
+  );
 }
-
 getGenders(companyId: number, regionId: number,userId: number) {
   return this.http.get<any>(
     `${this.baseUrl}/MasterData/GetGenderAll`,
