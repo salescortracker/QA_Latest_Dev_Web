@@ -221,7 +221,7 @@ export interface AttendanceStatus {
   
 }
 export interface ExpenseCategory {
-  ExpenseCategoryID: number;
+  expenseCategoryID: number;
   expenseCategoryName: string;
   isActive: boolean;
   CompanyID: number;
@@ -1132,8 +1132,13 @@ updateExpenseCategoryType(model: ExpenseCategory) {
 }
 
 deleteExpenseCategoryType(id: number) {
-  return this.http.delete<any>(`${this.baseUrl}/ExpenseCategoryType/Delete/${id}`);
+  return this.http.post<any>(
+    `${this.baseUrl}/MasterData/DeleteCategory?id=${id}`,{}
+  );
 }
+
+
+
 
 getAllExpenseCategoryTypes(companyId: number, regionId: number) {
   return this.http.get<any>(
@@ -1437,15 +1442,19 @@ downloadDDCopy(fileName: string): Observable<Blob> {
   deleteW4(id: number): Observable<void> {
     return this.http.post<void>(`${this.baseUrl}/employee/DeleteW4?id=${id}`, {});
   }
-  getexpensecategoryAll(companyId: number, regionId: number) {
-    return this.http.get<any>(
-      `${this.baseUrl}/MasterData/GetexpenseCategoryAll?companyId=${companyId}&regionId=${regionId}`
-    );
-  }
+ getexpensecategoryAll( userId: number) {
+  return this.http.get<any>(
+    `${this.baseUrl}/MasterData/GetexpenseCategoryAll?userId=${userId}`
+  );
+}
 
-  addexpenseCategory(payload: any) {
-    return this.http.post<any>(`${this.baseUrl}/MasterData/AddexpenseCategory`, payload);
-  }
+
+addexpenseCategory(payload: any, userId: number) {
+  return this.http.post<any>(
+    `${this.baseUrl}/MasterData/AddexpenseCategory?userId=${userId}`,
+    payload
+  );
+}
 
   updateexpensecategory(payload: any) {
     return this.http.post<any>(`${this.baseUrl}/MasterData/UpdateexpenseCategory`, payload);
