@@ -1,4 +1,6 @@
 import { Component, EventEmitter, Output,ViewChild,ElementRef } from '@angular/core';
+import { OnInit } from '@angular/core';
+
 interface ChatMessage {
    sender: 'User' | 'Bot';
   text?: string; 
@@ -10,7 +12,14 @@ interface ChatMessage {
   templateUrl: './topbar.component.html',
   styleUrl: './topbar.component.css'
 })
-export class TopbarComponent {
+export class TopbarComponent implements OnInit {
+loggedUserName: string = '';
+
+ngOnInit(): void {
+  this.loggedUserName = sessionStorage.getItem('Name') || 'Admin';
+}
+
+
 @Output() toggleSidebar = new EventEmitter<void>();
 
   onToggleSidebar() {

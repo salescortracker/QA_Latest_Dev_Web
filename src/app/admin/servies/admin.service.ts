@@ -678,12 +678,12 @@ export class AdminService {
   deleteUser(id: number): Observable<void> {
     return this.http.delete<void>(`${this.baseUrl}/UserManagement/DeleteUser/${id}`);
   }
-  login(username: string, password: string): Observable<any> {
-    const model = {email: username,password: password };
-    return this.http.post<any>(`${this.baseUrl}/UserManagement/Login`, model).pipe(
-      catchError(this.handleError)
-    );
-  }
+login(username: string, password: string): Observable<any> {
+  const model = { email: username, password: password };
+  return this.http.post<any>(`${this.baseUrl}/UserManagement/Login`, model)
+    .pipe(catchError(this.handleError));
+}
+
 
   private handleError(error: HttpErrorResponse) {
     console.error('Login API error:', error);
