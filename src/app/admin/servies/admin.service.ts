@@ -331,11 +331,23 @@ export interface CertificationType {
   CertificationTypeName: string;
   IsActive: boolean;
 }
+// export interface BloodGroup {
+//   companyId: number;
+//   bloodGroupID: number;
+//   bloodGroupName: string;
+//   isActive: boolean;
+// }
 export interface BloodGroup {
   bloodGroupID: number;
+  companyID: number;
+  regionID: number;
   bloodGroupName: string;
+  description: string | null;
   isActive: boolean;
+  userID: number;
 }
+
+
 export interface Gender {
   genderID: number;
   genderName: string;
@@ -878,21 +890,45 @@ deleteGender(id: number) {
   return this.http.post(`${this.baseUrl}/MasterData/DeleteGender?id=${id}`, {});
 }
 // Example endpoints
-getBloodGroups() {
-  return this.http.get(`${this.baseUrl}/bloodgroups`);
-}
 
-createBloodGroup(data: any) {
-  return this.http.post(`${this.baseUrl}/bloodgroups`, data);
-}
+//  // ✅ GET
+  getBloodGroups(companyId: number): Observable<any> {
+    return this.http.get(`${this.baseUrl}/MasterData/GetAllBloodGroups?companyId=${companyId}`);
+  }
 
-updateBloodGroup(id: number, data: any) {
-  return this.http.put(`${this.baseUrl}/bloodgroups/${id}`, data);
-}
+ getBloodGroupsbyID(userID: number): Observable<any> {
+    return this.http.get(`${this.baseUrl}/MasterData/GetBloodGroupsById/${userID}`);
+  }
 
-deleteBloodGroup(id: number) {
-  return this.http.delete(`${this.baseUrl}/bloodgroups/${id}`);
-}
+//   // ✅ CREATE
+  createBloodGroup(data: BloodGroup): Observable<any> {
+    return this.http.post(`${this.baseUrl}/MasterData/AddBloodGroups`, data);
+  }
+
+//   // ✅ UPDATE
+  updateBloodGroup(id: number, data: BloodGroup): Observable<any> {
+    return this.http.put(`${this.baseUrl}/MasterData/UpdateBloodGroups?id=${id}`, data);
+  }
+
+//   // ✅ DELETE (Soft delete)
+  deleteBloodGroup(id: number): Observable<any> {
+    return this.http.delete(`${this.baseUrl}/MasterData/DeleteBloodGroups/${id}`);
+  }
+// getBloodGroups() {
+//   return this.http.get(`${this.baseUrl}/bloodgroups`);
+// }
+
+// createBloodGroup(data: any) {
+//   return this.http.post(`${this.baseUrl}/bloodgroups`, data);
+// }
+
+// updateBloodGroup(id: number, data: any) {
+//   return this.http.put(`${this.baseUrl}/bloodgroups/${id}`, data);
+// }
+
+// deleteBloodGroup(id: number) {
+//   return this.http.delete(`${this.baseUrl}/bloodgroups/${id}`);
+// }
 //martital status CRUD operations
 
    // ----------------- Marital Status -----------------
