@@ -14,8 +14,13 @@ import { HelpdeskCategory } from '../../../servies/admin.service';
 })
 export class HelpdeskCategoryComponent {
  
-  companyId = 1;
-  regionId = 1;
+    userId!: number;
+  companyId!: number;
+  regionId!: number;
+companies: any[] = [];
+regions: any[] = [];
+allRegions: any[] = [];
+filteredRegions: any[] = [];
 
   category: HelpdeskCategory = this.getEmptyCategory();
   categories: HelpdeskCategory[] = [];
@@ -35,34 +40,150 @@ export class HelpdeskCategoryComponent {
   constructor(private adminService: AdminService, private spinner: NgxSpinnerService) {}
 
   ngOnInit(): void {
-    this.loadCategories();
+    this.userId = Number(sessionStorage.getItem("UserId"));
+    this.companyId = Number(sessionStorage.getItem("CompanyId"));
+    this.regionId = Number(sessionStorage.getItem("RegionId"));
+
+    if (!this.userId) {
+      console.error("UserId missing in sessionStorage");
+      return;
+    }
+  //   this.loadCompanies();
+  // this.loadRegions();
+   this.loadCompaniesAndRegions();
+    // this.loadCategories();
   }
+  loadCompaniesAndRegions() {
+  this.adminService.getCompanies(null, this.userId).subscribe({
+    next: (companyRes: any) => {
+
+      this.companies = companyRes?.data?.data || companyRes || [];
+
+      this.adminService.getRegions(null, this.userId).subscribe({
+        next: (regionRes: any) => {
+
+          this.allRegions = regionRes?.data?.data || regionRes || [];
+
+          // NOW categories load AFTER both are ready
+          this.loadCategories();
+        }
+      });
+    }
+  });
+}
+
+  loadCompanies() {
+  this.adminService.getCompanies(null, this.userId).subscribe({
+    next: (res: any) => {
+      this.companies = res?.data?.data || res || [];
+    }
+  });
+}
+
+
+loadRegions() {
+  this.adminService.getRegions(null, this.userId).subscribe({
+    next: (res: any) => {
+
+      this.allRegions = res?.data?.data || res || [];
+
+      console.log("All Regions:", this.allRegions);
+
+      // If company already selected → filter immediately
+      if (this.category.CompanyID) {
+        this.onCompanyChange();
+      }
+    }
+  });
+}
+
+
+
+onCompanyChange(): void {
+
+  const selectedCompanyId = Number(this.category.CompanyID);
+
+  this.filteredRegions = this.allRegions.filter(
+    r => Number(r.companyID) === selectedCompanyId
+  );
+
+  // If region does not belong to selected company → reset
+  const regionExists = this.filteredRegions.some(
+    r => r.regionID == this.category.RegionID
+  );
+
+  if (!regionExists) {
+    this.category.RegionID = 0;
+  }
+}
+
+
+
+
 
   getEmptyCategory(): HelpdeskCategory {
     return {
       HelpdeskCategoryID: 0,
       CategoryName: '',
       IsActive: true,
-      CompanyID: this.companyId,
-      RegionID: this.regionId
+      CompanyID: 0,
+      RegionID: 0,
+      UserId: 0
     };
   }
 
-  loadCategories(): void {
-    this.spinner.show();
-    this.adminService.getHelpdeskCategories(this.companyId, this.regionId).subscribe({
-      next: res => {
-        this.categories = res.data?.data || res;
-        this.spinner.hide();
-      },
-      error: () => {
-        this.spinner.hide();
-        Swal.fire('Error', 'Failed to load Helpdesk Categories.', 'error');
-      }
-    });
-  }
+ loadCategories(): void {
+  this.spinner.show();
+
+  this.adminService.getHelpdeskCategories(this.userId).subscribe({
+    next: (res: any) => {
+
+      const rawData = res.data || [];
+
+      this.categories = rawData.map((x: any) => {
+
+        const company = this.companies.find(c => c.companyId == x.companyID);
+        const region = this.allRegions.find(r => r.regionID == x.regionID);
+
+        return {
+          HelpdeskCategoryID: x.helpdeskCategoryID,
+          CategoryName: x.categoryName,
+          CompanyID: x.companyID,
+          RegionID: x.regionID,
+          CompanyName: company ? company.companyName : '',
+          RegionName: region ? region.regionName : '',
+          IsActive: x.isActive,
+          UserId: x.userId
+        };
+      });
+
+      console.log("Final Categories:", this.categories);
+
+      this.spinner.hide();
+    },
+    error: () => {
+      this.spinner.hide();
+      Swal.fire('Error', 'Failed to load Helpdesk Categories.', 'error');
+    }
+  });
+}
+
+
+getCompanyName(companyId: number): string {
+  const company = this.companies?.find(x => x.companyId === companyId);
+  return company ? company.companyName : '';
+}
+
+getRegionName(regionId: number): string {
+  const region = this.allRegions?.find(x => x.regionID === regionId);
+  return region ? region.regionName : '';
+}
+
 
   onSubmit(): void {
+     this.category.UserId = this.userId;
+  // this.category.CompanyID = this.companyId;
+  // this.category.RegionID = this.regionId;
     this.spinner.show();
     if (this.isEditMode) {
       this.adminService.updateHelpdeskCategory(this.category).subscribe({
@@ -93,10 +214,29 @@ export class HelpdeskCategoryComponent {
     }
   }
 
+  // editCategory(c: HelpdeskCategory): void {
+  //   this.category = { ...c };
+  //   this.isEditMode = true;
+  //   this.onCompanyChange(); 
+  // }
+
   editCategory(c: HelpdeskCategory): void {
-    this.category = { ...c };
-    this.isEditMode = true;
-  }
+
+  this.isEditMode = true;
+
+  this.category = {
+    HelpdeskCategoryID: c.HelpdeskCategoryID,
+    CategoryName: c.CategoryName,
+    CompanyID: Number(c.CompanyID),
+    RegionID: Number(c.RegionID),
+    IsActive: c.IsActive,
+    UserId: c.UserId
+  };
+
+  // Important: Filter regions based on selected company
+  this.onCompanyChange();
+}
+
 
   deleteCategory(c: HelpdeskCategory): void {
     Swal.fire({

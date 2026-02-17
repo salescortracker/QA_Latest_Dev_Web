@@ -13,10 +13,16 @@ import { ProjectStatus } from '../../../servies/admin.service';
   styleUrl: './project-status.component.css'
 })
 export class ProjectStatusComponent {
- companyId = 1;
-  regionId = 1;
+ userId!: number;
+  companyId!: number;
+  regionId!: number;
+companies: any[] = [];
+regions: any[] = [];
+allRegions: any[] = [];
+filteredRegions: any[] = [];
 
-  status: ProjectStatus = this.getEmptyStatus();
+ status!: ProjectStatus;
+
   statuses: ProjectStatus[] = [];
   statusesModel: any = {};
 
@@ -34,34 +40,133 @@ export class ProjectStatusComponent {
   constructor(private adminService: AdminService, private spinner: NgxSpinnerService) {}
 
   ngOnInit(): void {
-    this.loadStatuses();
+    this.userId = Number(sessionStorage.getItem("UserId"));
+    this.companyId = Number(sessionStorage.getItem("CompanyId"));
+    this.regionId = Number(sessionStorage.getItem("RegionId"));
+
+    if (!this.userId) {
+      console.error("UserId missing in sessionStorage");
+      return;
+    }
+  this.status = this.getEmptyStatus();  
+   this.loadCompaniesAndRegions();
+   
+     this.loadStatuses();
   }
+  loadCompaniesAndRegions() {
+  this.adminService.getCompanies(null, this.userId).subscribe({
+    next: (companyRes: any) => {
+
+      this.companies = companyRes?.data?.data || companyRes || [];
+
+      this.adminService.getRegions(null, this.userId).subscribe({
+        next: (regionRes: any) => {
+
+          this.allRegions = regionRes?.data?.data || regionRes || [];
+
+          // NOW categories load AFTER both are ready
+          this.loadStatuses();
+        }
+      });
+    }
+  });
+}
+
+  onCompanyChange(): void {
+
+  const selectedCompanyId = Number(this.status.CompanyId);
+
+  this.filteredRegions = this.allRegions.filter(
+    r => Number(r.companyID) === selectedCompanyId
+  );
+
+  // If region does not belong to selected company → reset
+  const regionExists = this.filteredRegions.some(
+    r => r.regionID == this.status.RegionId
+  );
+
+  if (!regionExists) {
+    this.status.RegionId = 0;
+  }
+}
 
   getEmptyStatus(): ProjectStatus {
     return {
       ProjectStatusID: 0,
       ProjectStatusName: '',
       IsActive: true,
-      CompanyID: this.companyId,
-      RegionID: this.regionId
+      CompanyId: this.companyId,
+      RegionId: this.regionId,
+      UserId: this.userId
     };
   }
 
-  loadStatuses(): void {
-    this.spinner.show();
-    this.adminService.getProjectStatuses(this.companyId, this.regionId).subscribe({
-      next: res => {
-        this.statuses = res.data?.data || res;
-        this.spinner.hide();
-      },
-      error: () => {
-        this.spinner.hide();
-        Swal.fire('Error', 'Failed to load Project Statuses.', 'error');
+loadStatuses(): void {
+  this.spinner.show();
+  this.adminService.getProjectStatuses(this.userId).subscribe({
+    next: res => {
+
+      const rawData = res.data || [];
+
+      this.statuses = rawData.map((item: any) => {
+
+        const company = this.companies.find(
+          c => Number(c.companyId) === Number(item.companyId)
+        );
+
+        const region = this.allRegions.find(
+          r => Number(r.regionID) === Number(item.regionId)
+        );
+
+        return {
+          ProjectStatusID: item.projectStatusId,
+          ProjectStatusName: item.projectStatusName,
+          IsActive: item.isActive,
+          CompanyId: item.companyId,
+          RegionId: item.regionId,
+          UserId: item.userId,
+          CompanyName: company ? company.companyName : '',
+          RegionName: region ? region.regionName : ''
+        };
+      });
+
+      this.spinner.hide();
+    },
+    error: () => {
+      this.spinner.hide();
+      Swal.fire('Error', 'Failed to load Project Statuses.', 'error');
+    }
+  });
+}
+
+
+   loadCompanies() {
+  this.adminService.getCompanies(null, this.userId).subscribe({
+    next: (res: any) => {
+      this.companies = res?.data?.data || res || [];
+    }
+  });
+}
+
+
+loadRegions() {
+  this.adminService.getRegions(null, this.userId).subscribe({
+    next: (res: any) => {
+
+      this.allRegions = res?.data?.data || res || [];
+
+      console.log("All Regions:", this.allRegions);
+
+      // If company already selected → filter immediately
+      if (this.status.CompanyId) {
+        this.onCompanyChange();
       }
-    });
-  }
+    }
+  });
+}
 
   onSubmit(): void {
+    this.status.UserId = this.userId;
     this.spinner.show();
     if (this.isEditMode) {
       this.adminService.updateProjectStatus(this.status).subscribe({
@@ -94,6 +199,7 @@ export class ProjectStatusComponent {
 
   editStatus(s: ProjectStatus): void {
     this.status = { ...s };
+    this.onCompanyChange();
     this.isEditMode = true;
   }
 
