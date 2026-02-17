@@ -17,12 +17,12 @@ export class LoginComponent {
     { role: 'HR', username: 'hr_user', password: 'Hr@123', route: '/dashboard' },
     { role: 'Manager', username: 'manager_user', password: 'Mg@123', route: '/dashboard' },
     { role: 'Admin', username: 'admin_user', password: 'Admin@123', route: '/admin/dashboard' },
-     { role: 'SuperAdmin', username: 'superadmin_user', password: 'Superadmin@123', route: '/dashboard' },
+    { role: 'SuperAdmin', username: 'superadmin_user', password: 'Superadmin@123', route: '/dashboard' },
     { role: 'Finance', username: 'finance_user', password: 'Fn@123', route: '/dashboard' },
     { role: 'Employee', username: 'emp_user', password: 'emp@123', route: '/dashboard' }
   ];
 
-  constructor(private router: Router,private loginService: AdminService) {}
+  constructor(private router: Router, private loginService: AdminService) { }
 
   // login() {
   //   const user = this.users.find(u => u.username === this.username && u.password === this.password);
@@ -35,63 +35,88 @@ export class LoginComponent {
   //     this.errorMessage = 'Invalid username or password';
   //   }
   // }
-  login() {
-    debugger;
-    this.errorMessage = '';
+login() {
+  // debugger;
+  this.errorMessage = '';
 
-    if (!this.username || !this.password) {
-      this.errorMessage = 'Please enter username and password';
-      return;
-    }
-
-    this.loading = true;
-
-    this.loginService.login(this.username, this.password).subscribe({
-      next: (response) => {
-        this.loading = false;
-
-        if (response && response.message) {
-          // ✅ Save session or token
-          sessionStorage.setItem('CompanyId', response.user.companyId.toString());
-          sessionStorage.setItem('RegionId', response.user.regionId.toString());
-          sessionStorage.setItem('roleId', response.user.roleId.toString());
-          sessionStorage.setItem('currentUser', JSON.stringify(response.user));
-          sessionStorage.setItem('roleName', response.user.roleName);
-          sessionStorage.setItem('Name', response.user.fullName);         
-          sessionStorage.setItem('EmployeeCode', response.user.employeeCode);
-          sessionStorage.setItem('UserId', response.user.userId.toString());
-          sessionStorage.setItem('Email', response.user.personalEmail);
-          sessionStorage.setItem('RegionName', response.user.regionName);
-          sessionStorage.setItem('CompanyName', response.user.companyName);
-         sessionStorage.setItem('paswordChanged', response.user.paswordChanged);
-           sessionStorage.setItem('UserId', response.user.userId.toString());
-          sessionStorage.setItem('repotingTo', response.user.reportingTo);
-          // sessionStorage.setItem('DepartmentId', response.user.departmentId.toString());
-          Swal.fire('Login Successful', response.message, 'success');
-           
-          if(response.user.paswordChanged == null){
-            Swal.fire('Change Password', 'You must change your password before proceeding.', 'info');
-            this.router.navigate(['/change-password'] , { queryParams: { userId: response.user.userId } });
-            return;
-           }
-
-          // ✅ Navigate by role or response route
-          const route =
-            response.user.roleName === 'Admin'
-              ? '/admin/dashboard'
-              : '/dashboard';
-
-          this.router.navigate([route]);
-        } else {
-          this.errorMessage = 'Invalid username or password';
-        }
-      },
-      error: (error) => {
-        this.loading = false;
-        console.error('Login failed:', error);
-        this.errorMessage = 'Server error. Please try again.';
-      }
-    });
+  if (!this.username || !this.password) {
+    this.errorMessage = 'Please enter username and password';
+    return;
   }
-  
+
+  this.loading = true;
+
+  this.loginService.login(this.username, this.password).subscribe({
+    next: (response) => {
+      this.loading = false;
+
+      if (response && response.message && response.user) {
+
+        const user = response.user;
+
+        // ✅ Store IDs
+        sessionStorage.setItem('CompanyId', user.companyId?.toString() ?? '');
+        sessionStorage.setItem('RegionId', user.regionId?.toString() ?? '');
+        sessionStorage.setItem('roleId', user.roleId?.toString() ?? '');
+        sessionStorage.setItem('UserId', user.userId?.toString() ?? '');
+        sessionStorage.setItem('DepartmentId', user.departmentId?.toString() ?? '');
+        sessionStorage.setItem('ReportingManagerId', user.reportingTo?.toString() ?? '');
+
+        // ✅ Store Basic Info
+        sessionStorage.setItem('Name', user.fullName ?? '');
+        sessionStorage.setItem('EmployeeCode', user.employeeCode ?? '');
+        sessionStorage.setItem('Email', user.personalEmail ?? '');
+        sessionStorage.setItem('roleName', user.roleName ?? '');
+        sessionStorage.setItem('RegionName', user.regionName ?? '');
+        sessionStorage.setItem('CompanyName', user.companyName ?? '');
+        sessionStorage.setItem('DepartmentProject', user.departmentProject ?? '');
+        sessionStorage.setItem('paswordChanged', user.paswordChanged ?? '');
+
+        // ✅ Store STRING VALUES (FROM JOIN QUERY)
+        sessionStorage.setItem('DepartmentName', user.departmentName ?? '');
+        sessionStorage.setItem('ReportingManagerName', user.reportingManagerName ?? '');
+        sessionStorage.setItem('Designation', user.designation ?? '');
+
+        // Optional: store full user object
+        sessionStorage.setItem('currentUser', JSON.stringify(user));
+
+        console.log("FULL LOGIN RESPONSE:", response);
+        console.log("USER OBJECT:", user);
+        console.log("Designation from API:", user.designation);
+
+        Swal.fire('Login Successful', response.message, 'success');
+
+        // 🔐 Force password change if needed
+        if (!user.paswordChanged) {
+          Swal.fire(
+            'Change Password',
+            'You must change your password before proceeding.',
+            'info'
+          );
+          this.router.navigate(['/change-password'], {
+            queryParams: { userId: user.userId }
+          });
+          return;
+        }
+
+        // ✅ Navigate by role
+        const route =
+          user.roleName === 'Admin'
+            ? '/admin/dashboard'
+            : '/dashboard';
+
+        this.router.navigate([route]);
+
+      } else {
+        this.errorMessage = 'Invalid username or password';
+      }
+    },
+    error: (error) => {
+      this.loading = false;
+      console.error('Login failed:', error);
+      this.errorMessage = 'Server error. Please try again.';
+    }
+  });
+}
+
 }
