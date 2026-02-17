@@ -33,16 +33,38 @@
           <div class="row g-3">
             <div class="col-md-6">
               <label class="form-label fw-semibold">Project Status</label>
-              <input type="text" class="form-control" name="ProjectStatusName"
-                [(ngModel)]="status.ProjectStatusName"
-                placeholder="Enter Project Status"
-                required
-              />
+              <input type="text" class="form-control" name="ProjectStatusName" [(ngModel)]="status.ProjectStatusName"
+                placeholder="Enter Project Status" required />
+            </div>
+            <div class="col-md-6">
+              <label>Company</label>
+              <select class="form-control" [(ngModel)]="status.CompanyId" name="company" (change)="onCompanyChange()">
+                <option value="">-- Select Company --</option>
+                <option *ngFor="let c of companies" [value]="c.companyId">
+                  {{ c.companyName }}
+                </option>
+
+              </select>
+            </div>
+
+            <!-- Region -->
+            <div class="col-md-6">
+              <label>Region</label>
+              <select class="form-control" [(ngModel)]="status.RegionId" name="region">
+
+                <option value="">-- Select Region --</option>
+
+                <option *ngFor="let r of filteredRegions" [value]="r.regionID">
+                  {{ r.regionName }}
+                </option>
+
+              </select>
+
             </div>
             <div class="col-md-6 d-flex align-items-center">
               <div class="form-check form-switch mt-3">
-                <input class="form-check-input" type="checkbox" id="isActiveSwitch"
-                  [(ngModel)]="status.IsActive" name="IsActive">
+                <input class="form-check-input" type="checkbox" id="isActiveSwitch" [(ngModel)]="status.IsActive"
+                  name="IsActive">
                 <label class="form-check-label ms-2" for="isActiveSwitch">
                   {{ status.IsActive ? 'Active' : 'Inactive' }}
                 </label>
@@ -86,6 +108,8 @@
                 <th (click)="sortTable('ProjectStatusName')" class="sortable">
                   Project Status <i class="fa" [ngClass]="getSortIcon('ProjectStatusName')"></i>
                 </th>
+                <th>Company</th>
+                <th>Region</th>
                 <th>Status</th>
                 <th class="text-center">Actions</th>
               </tr>
@@ -94,6 +118,8 @@
               <tr *ngFor="let s of pagedStatuses; let i = index">
                 <td>{{ (currentPage - 1) * pageSize + i + 1 }}</td>
                 <td>{{ s.ProjectStatusName }}</td>
+                <td>{{ s.CompanyName }}</td>
+                <td>{{ s.RegionName }}</td>
                 <td>
                   <span class="badge" [ngClass]="s.IsActive ? 'bg-success' : 'bg-secondary'">
                     {{ s.IsActive ? 'Active' : 'Inactive' }}
@@ -137,10 +163,6 @@
 </div>
 
 <!-- Bulk Upload Component -->
-<app-common-upload
-  [visible]="showUploadPopup"
-  [screenName]="'ProjectStatus'"
-  [model]="statusesModel"
-  (close)="closeUploadPopup()"
-  (uploadComplete)="onBulkUploadComplete($event)">
+<app-common-upload [visible]="showUploadPopup" [screenName]="'ProjectStatus'" [model]="statusesModel"
+  (close)="closeUploadPopup()" (uploadComplete)="onBulkUploadComplete($event)">
 </app-common-upload>

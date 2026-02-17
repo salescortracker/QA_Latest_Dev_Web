@@ -208,8 +208,11 @@ export interface ProjectStatus {
   ProjectStatusID: number;
   ProjectStatusName: string;
   IsActive: boolean;
-  CompanyID: number;
-  RegionID: number;
+  CompanyId: number; 
+  RegionId: number;
+  UserId: number;
+  CompanyName?: string;
+  RegionName?: string;
 }
 export interface AttendanceStatus {
   AttendanceStatusID: number;
@@ -300,6 +303,9 @@ export interface HelpdeskCategory {
   IsActive: boolean;
   CompanyID: number;
   RegionID: number;
+  UserId: number;
+  CompanyName?: string;
+  RegionName?: string;
 }
 export interface KpiCategory {
   KpiCategoryID?: number;
@@ -989,23 +995,23 @@ deleteAttachmentType(id: number) {
   return this.http.delete<any>(`${this.baseUrl}/AttachmentType/Delete/${id}`);
 }
 // GET all project statuses
-  getProjectStatuses(companyId: number, regionId: number): Observable<any> {
-    return this.http.get(`${this.baseUrl}/project-status?companyId=${companyId}&regionId=${regionId}`);
+  getProjectStatuses(userId: number): Observable<any> {
+    return this.http.get(`${this.baseUrl}/MasterData/project-status?userId=${userId}`);
   }
 
   // CREATE
   createProjectStatus(status: ProjectStatus): Observable<any> {
-    return this.http.post(`${this.baseUrl}/project-status`, status);
+    return this.http.post(`${this.baseUrl}/MasterData/project-status`, status);
   }
 
   // UPDATE
   updateProjectStatus(status: ProjectStatus): Observable<any> {
-    return this.http.put(`${this.baseUrl}/project-status/${status.ProjectStatusID}`, status);
+    return this.http.put(`${this.baseUrl}/MasterData/project-status/${status.ProjectStatusID}`, status);
   }
 
   // DELETE
   deleteProjectStatus(id: number): Observable<any> {
-    return this.http.delete(`${this.baseUrl}/project-status/${id}`);
+    return this.http.delete(`${this.baseUrl}/MasterData/project-status/${id}`);
   }
 
   // GET all asset statuses
@@ -1029,23 +1035,24 @@ deleteAttachmentType(id: number) {
   }
 
   // GET all helpdesk categories
-  getHelpdeskCategories(companyId: number, regionId: number): Observable<any> {
-    return this.http.get(`${this.baseUrl}/helpdesk-category?companyId=${companyId}&regionId=${regionId}`);
-  }
+  getHelpdeskCategories(userId: number): Observable<any> {
+  return this.http.get(`${this.baseUrl}/MasterData/helpdesk-category?userId=${userId}`);
+}
+
 
   // CREATE
   createHelpdeskCategory(category: HelpdeskCategory): Observable<any> {
-    return this.http.post(`${this.baseUrl}/helpdesk-category`, category);
+    return this.http.post(`${this.baseUrl}/MasterData/helpdesk-category`, category);
   }
 
   // UPDATE
   updateHelpdeskCategory(category: HelpdeskCategory): Observable<any> {
-    return this.http.put(`${this.baseUrl}/helpdesk-category/${category.HelpdeskCategoryID}`, category);
+    return this.http.put(`${this.baseUrl}/MasterData/helpdesk-category/${category.HelpdeskCategoryID}`, category);
   }
 
   // DELETE
   deleteHelpdeskCategory(id: number): Observable<any> {
-    return this.http.delete(`${this.baseUrl}/helpdesk-category/${id}`);
+    return this.http.delete(`${this.baseUrl}/MasterData/helpdesk-category/${id}`);
   }
  getAttendanceStatus(companyId: number, regionId: number) {
   return this.http.get<any>(`${this.baseUrl}/AttendanceStatus/GetAll?companyId=${companyId}&regionId=${regionId}`);
