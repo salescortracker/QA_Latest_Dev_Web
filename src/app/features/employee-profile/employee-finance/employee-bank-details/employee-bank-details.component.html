@@ -43,9 +43,12 @@
       <div class="col-md-4">
         <label class="form-label">Account Type</label>
         <select class="form-select" formControlName="accountTypeId">
-          <option value="">Select account type</option>
-          <option *ngFor="let type of accountTypes" [value]="type.id">{{ type.name }}</option>
-        </select>
+        <option [ngValue]="null">Select account type</option>
+        <option *ngFor="let type of accountTypes"
+                [ngValue]="type.accountTypeId">
+          {{ type.accountTypeName }}
+        </option>
+      </select>
         <div *ngIf="bankForm.get('accountTypeId')?.touched && bankForm.get('accountTypeId')?.invalid" class="text-danger">
           Account Type is required
         </div>
