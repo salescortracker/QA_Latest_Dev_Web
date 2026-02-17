@@ -110,7 +110,7 @@
               <tr *ngFor="let item of pagedLeave; let i = index">
                 <td>{{ (currentPage - 1) * pageSize + i + 1 }}</td>
 
-                <td>{{ item.LeaveStatusName }}</td>
+                <td>{{ item.LeaveStatusName  }}</td>
 
                 <td>
                   <span class="badge" [ngClass]="item.IsActive ? 'bg-success' : 'bg-secondary'">
