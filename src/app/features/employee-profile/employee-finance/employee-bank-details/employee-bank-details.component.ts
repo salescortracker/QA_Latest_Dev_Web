@@ -14,13 +14,7 @@ export class EmployeeBankDetailsComponent {
   userId!: number;
   companyId = Number(sessionStorage.getItem("CompanyId"));
   regionId = Number(sessionStorage.getItem("RegionId"));
-  accountTypes = [
-    { id: 1, name: 'Savings' },
-    { id: 2, name: 'Current' },
-    { id: 3, name: 'Salary' },
-    { id: 4, name: 'NRE' },
-    { id: 5, name: 'NRO' }
-  ];
+  accountTypes: any[] = [];
 
   employeeId = 123; // Replace with actual employee ID
   isAdmin: boolean = true; // Role-based display
@@ -41,14 +35,30 @@ export class EmployeeBankDetailsComponent {
 
   constructor(private fb: FormBuilder, private adminService: AdminService) {}
 
-  ngOnInit(): void {
-    this.userId = Number(sessionStorage.getItem("UserId"));
-    if (!this.userId) {
-      console.error("UserId missing in sessionStorage");
+  // ngOnInit(): void {
+  //   this.userId = Number(sessionStorage.getItem("UserId"));
+  //   if (!this.userId) {
+  //     console.error("UserId missing in sessionStorage");
+  //   }
+  //   this.initForm();
+  //   this.loadBankDetails();
+  // }
+
+   ngOnInit(): void {
+      this.userId = Number(sessionStorage.getItem("UserId"));
+      this.companyId = Number(sessionStorage.getItem("CompanyId"));
+      this.regionId = Number(sessionStorage.getItem("RegionId"));
+      console.log("User:", this.userId);
+      console.log("Company:", this.companyId);
+      console.log("Region:", this.regionId);
+
+      this.initForm();
+      this.loadBankDetails();
+
+      if (this.companyId && this.regionId) {
+        this.loadAccountTypes();   // ✅ Now it loads based on company + region
+      }
     }
-    this.initForm();
-    this.loadBankDetails();
-  }
 
   /** Initialize Bank Form */
   initForm() {
@@ -162,12 +172,42 @@ export class EmployeeBankDetailsComponent {
       }
     });
   }
+  
+    loadAccountTypes() {
+      debugger;
+    console.log("Calling API with:",
+      this.userId,
+      this.companyId,
+      this.regionId
+    );
+
+    this.adminService.getAccountTypesName( this.companyId, this.regionId)
+    .subscribe({
+      next: (res: any) => {
+        console.log("FULL RESPONSE:", res);
+
+        // Try both possible structures
+        this.accountTypes =
+          res?.data?.data ??
+          res?.data ??
+          res ??
+          [];
+
+          console.log("Final accountTypes:", this.accountTypes);
+        },
+        error: (err) => {
+          console.error("Failed to load account types", err);
+        }
+      });
+    }
+
 
   /** Get Account Type Name */
   getAccountTypeName(id: number | undefined) {
-    const type = this.accountTypes.find(t => t.id === id);
-    return type ? type.name : '';
-  }
+     const type = this.accountTypes.find(t => t.accountTypeId === id);
+      return type ? type.accountTypeName : '';
+    }
+
 
   /** Mask Account Number for security */
   maskAccountNumber(accountNumber: string): string {
@@ -239,4 +279,6 @@ export class EmployeeBankDetailsComponent {
     this.pageSize = size;
     this.currentPage = 1;
   }
+
+  
 }
