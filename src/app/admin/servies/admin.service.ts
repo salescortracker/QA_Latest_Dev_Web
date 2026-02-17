@@ -551,6 +551,43 @@ export interface AccountType{
 }
 
 
+export interface PerformanceKPI {
+  id?: number;
+  kpiName?: string;
+  weightage?: number;
+  target?: string;
+  achieved?: string;
+  selfRating?: number;
+  managerRating?: number;
+  remarks?: string;
+}
+
+export interface PerformanceReview {
+  id?: number;
+  userId?: number;
+  roleId?: number;
+
+  departmentProject?: string;
+  reportingManagerId?: number;
+  designation?: string;
+  department?: string;
+  dateOfJoining?: string;
+
+  probationStatus?: string;
+  performanceCycle?: string;
+  applicableStartDate?: string;
+  applicableEndDate?: string;
+  progressType?: string;
+  appraisalYear?: string;
+
+  selfReviewSummary?: string;
+  status?: string;
+
+  kpis?: PerformanceKPI[];
+}
+
+
+
 @Injectable({
   providedIn: 'root'
 })
@@ -1723,6 +1760,45 @@ bulkUploadCertificationTypes(data: CertificationType[]): Observable<any> {
   return path.split('/').pop() || 'download';
 }
 
+
+
+
+saveDraft(data: any) {
+  return this.http.post(`${this.baseUrl}/EmployeeKpi/SaveDraft`, data);
+}
+
+submit(data: any) {
+  return this.http.post(`${this.baseUrl}/EmployeeKpi/Submit`, data);
+}
+
+getByUser(userId: number) {
+  return this.http.get(`${this.baseUrl}/EmployeeKpi/GetByUser/${userId}`);
+}
+
+getManagerReviews(userId: number) {
+  return this.http.get<any>(`${this.baseUrl}/EmployeeKpi/manager/${userId}`);
+}
+
+
+approve(reviewId: number, managerId: number, remarks: string) {
+  return this.http.post(
+    `${this.baseUrl}/EmployeeKpi/Approve?reviewId=${reviewId}&managerId=${managerId}&remarks=${encodeURIComponent(remarks)}`,
+    {}
+  );
+}
+
+reject(reviewId: number, managerId: number, remarks: string) {
+  return this.http.post(
+    `${this.baseUrl}/EmployeeKpi/Reject?reviewId=${reviewId}&managerId=${managerId}&remarks=${encodeURIComponent(remarks)}`,
+    {}
+  );
+}
+request(reviewId: number) {
+  return this.http.post(
+    `${this.baseUrl}/EmployeeKpi/Request?reviewId=${reviewId}`,
+    {}
+  );
+}
 
 
 }
