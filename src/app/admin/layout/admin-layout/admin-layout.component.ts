@@ -47,6 +47,7 @@ export class AdminLayoutComponent {
       { title: 'Attendance Status', route: '/admin/attendance-status' },
         { title: 'Company News Category', route: '/admin/company-news-category' },
 
+      { title: 'Bank-Details', route: '/admin/bank-details' },
     ],
     'Configuration': [
       { title: 'Approval Workflows', route: '/admin/approval-workflow' },
