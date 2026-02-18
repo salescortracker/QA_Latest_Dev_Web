@@ -93,6 +93,7 @@ import { ScreeningComponent } from './features/recruitment/screening/screening.c
 import { EmployeeResignationHrApprovalComponent } from './features/employee-profile/employee-resignation/employee-resignation-hr-approval/employee-resignation-hr-approval.component';
 import { EmployeeResignationManagerApprovalComponent } from './features/employee-profile/employee-resignation/employee-resignation-manager-approval/employee-resignation-manager-approval.component';
 import { EmployeeResignationDetailsComponent } from './features/employee-profile/employee-resignation/employee-resignation-details/employee-resignation-details.component';
+import { ShiftsComponent } from './shifts/shifts.component';
 @NgModule({
   declarations: [
     AppComponent,
@@ -179,8 +180,8 @@ import { EmployeeResignationDetailsComponent } from './features/employee-profile
     ScreeningComponent,
     EmployeeResignationHrApprovalComponent,
     EmployeeResignationManagerApprovalComponent,
-    EmployeeResignationDetailsComponent
-    
+    EmployeeResignationDetailsComponent,
+    ShiftsComponent      
   ],
   imports: [
     BrowserModule, ReactiveFormsModule,
