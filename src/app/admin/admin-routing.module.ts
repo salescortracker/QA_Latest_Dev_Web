@@ -55,6 +55,7 @@ import { RegionComponent } from './master/region/region.component';
 import { UsersComponent } from './master/users/users.component';
 import { MenusComponent } from './master/menus/menus.component';
 import { ShiftsComponent } from '../shifts/shifts.component';
+import { BankDetailComponent } from '../bank-detail/bank-detail.component';
 
 const routes: Routes = [
   {
@@ -117,6 +118,7 @@ const routes: Routes = [
 { path: 'users', component: UsersComponent },  
 { path: 'menumaster', component: MenusComponent },  
 { path: 'shift', component: ShiftsComponent },
+{path : 'bank-details', component: BankDetailComponent},
 
       // Add more admin pages here
     ]
