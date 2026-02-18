@@ -127,7 +127,8 @@ import { WelcomedemoComponent } from './pages/welcomedemo/welcomedemo.component'
     MenusComponent,
     CommonUploadComponent,
     SubmenuComponent,
-    WelcomedemoComponent
+    WelcomedemoComponent,
+    
  
   
 
