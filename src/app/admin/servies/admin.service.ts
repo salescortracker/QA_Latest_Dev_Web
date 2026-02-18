@@ -538,6 +538,15 @@ export interface MaritalStatus {
     companyName?: string;
   regionName?: string;
 }
+export interface News {
+  Title: string;
+  NewsId?: number;      // <-- added for backend
+  Category: string;
+  Description: string;
+  Date: Date;
+  PublishedDate: string;
+  Attachment?: File | null;
+}
 
 @Injectable({
   providedIn: 'root'
@@ -1673,6 +1682,34 @@ bulkUploadCertificationTypes(data: CertificationType[]): Observable<any> {
   return path.split('/').pop() || 'download';
 }
 
+  // Company News
+// Company News Service
+getallDepartments(): Observable<Department[]> {
+  return this.http.get<Department[]>(`${this.baseUrl}/Attendance/departments`);
+}
 
+getAllNews(): Observable<any[]> {
+  return this.http.get<any[]>(`${this.baseUrl}/Attendance/get-all`);
+}
+
+addNews(formData: FormData): Observable<string> {
+  return this.http.post(`${this.baseUrl}/Attendance/add-news`, formData, { responseType: 'text' });
+}
+
+updateNews(formData: FormData): Observable<string> {
+  return this.http.put(`${this.baseUrl}/Attendance/update-news`, formData, { responseType: 'text' });
+}
+
+deleteNews(newsId: number, userId: number): Observable<string> {
+  return this.http.delete(`${this.baseUrl}/Attendance/delete-news/${newsId}?userId=${userId}`, { responseType: 'text' });
+}
+//----------------------------------COMPANY NEWS Employee Component --------------------------------//
+// Inside your existing service, e.g., AdminService or CompanyNewsService
+getFilteredNews(category?: string, date?: string): Observable<any[]> {
+  let params: any = {};
+  if (category) params.category = category;
+  if (date) params.date = date;
+  return this.http.get<any[]>(`${this.baseUrl}/Attendance/get-all`, { params });
+}
 
 }

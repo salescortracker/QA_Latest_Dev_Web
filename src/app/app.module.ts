@@ -47,7 +47,6 @@ import { AssetManagementComponent } from './features/asset/asset-management/asse
 import { TimesheetManagementComponent } from './features/timesheet/timesheet-management/timesheet-management.component';
 import { KpiPerformanceComponent } from './features/performance/kpi-performance/kpi-performance.component';
 import { HelpDeskManagementComponent } from './features/helpdesk/help-desk-management/help-desk-management.component';
-import { ComanyNewsComponent } from './features/company-news/comany-news/comany-news.component';
 import { EmployeePolicyComponent } from './features/company-policies/employee-policy/employee-policy.component';
 import { MyTeamHierarchyComponent } from './features/my-team/my-team-hierarchy/my-team-hierarchy.component';
 import { MyCalendarComponent } from './features/my-calendar/my-calendar/my-calendar.component';
@@ -93,6 +92,7 @@ import { ScreeningComponent } from './features/recruitment/screening/screening.c
 import { EmployeeResignationHrApprovalComponent } from './features/employee-profile/employee-resignation/employee-resignation-hr-approval/employee-resignation-hr-approval.component';
 import { EmployeeResignationManagerApprovalComponent } from './features/employee-profile/employee-resignation/employee-resignation-manager-approval/employee-resignation-manager-approval.component';
 import { EmployeeResignationDetailsComponent } from './features/employee-profile/employee-resignation/employee-resignation-details/employee-resignation-details.component';
+import { CompanyNewsEmpComponent } from './features/company-news/comany-news/comany-news.component';
 @NgModule({
   declarations: [
     AppComponent,
@@ -140,7 +140,7 @@ import { EmployeeResignationDetailsComponent } from './features/employee-profile
     TimesheetManagementComponent,
     KpiPerformanceComponent,
     HelpDeskManagementComponent,
-    ComanyNewsComponent,
+    CompanyNewsEmpComponent,
     EmployeePolicyComponent,
     MyTeamHierarchyComponent,
     MyCalendarComponent,
@@ -179,7 +179,8 @@ import { EmployeeResignationDetailsComponent } from './features/employee-profile
     ScreeningComponent,
     EmployeeResignationHrApprovalComponent,
     EmployeeResignationManagerApprovalComponent,
-    EmployeeResignationDetailsComponent
+    EmployeeResignationDetailsComponent,
+    
     
   ],
   imports: [

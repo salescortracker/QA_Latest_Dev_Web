@@ -45,6 +45,8 @@ export class AdminLayoutComponent {
       { title: 'Leave Type', route: '/admin/leave-type' },
        { title: 'Leave Status', route: '/admin/leave-status' },
       { title: 'Attendance Status', route: '/admin/attendance-status' },
+        { title: 'Company News Category', route: '/admin/company-news-category' },
+
     ],
     'Configuration': [
       { title: 'Approval Workflows', route: '/admin/approval-workflow' },
