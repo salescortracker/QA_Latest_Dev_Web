@@ -9,6 +9,7 @@ import { environment } from '../../../environments/environment';
 import { EmployeeDocument } from '../layout/models/employee-document.model';
 import { EmployeeForm } from '../layout/models/employee-forms.model';
 import { EmployeeLetter } from '../layout/models/employee-letter.model';
+import { ShiftsComponent } from '../../shifts/shifts.component';
 // ------------ Model Interfaces ----------------
 //---------------------------------BANK DETAILS-----------------------------------------//
 export interface BankDetails {
@@ -437,6 +438,9 @@ export interface ShiftMasterDto {
   isActive?: boolean;
   companyID?: number;
   regionID?: number;
+  userID: number;
+  companyName?: string;
+  regionName?: string;
 }
 
 export interface ShiftAllocationDto {
@@ -1509,8 +1513,8 @@ downloadDDCopy(fileName: string): Observable<Blob> {
 // -------------------------------
   // SHIFT MASTER
   // -------------------------------
-  getAllShifts(): Observable<ShiftMasterDto[]> {
-    return this.http.get<ShiftMasterDto[]>(`${this.baseUrl}/UserManagement/GetAllShifts`);
+  getAllShifts(userId: number): Observable<ShiftMasterDto[]> {
+    return this.http.get<ShiftMasterDto[]>(`${this.baseUrl}/Attendance/GetAllShifts?userId=${userId}`);
   }
 
   getShiftById(shiftId: number): Observable<ShiftMasterDto> {
@@ -1518,15 +1522,17 @@ downloadDDCopy(fileName: string): Observable<Blob> {
   }
 
   addShift(model: ShiftMasterDto): Observable<any> {
-    return this.http.post(`${this.baseUrl}/UserManagement/AddShift`, model);
+    debugger;
+    return this.http.post(`${this.baseUrl}/Attendance/AddShift`, model);
   }
 
   updateShift(model: ShiftMasterDto): Observable<any> {
-    return this.http.put(`${this.baseUrl}/UserManagement/UpdateShift`, model);
+    return this.http.put(`${this.baseUrl}/Attendance/UpdateShift`, model);
   }
 
   deleteShift(shiftId: number): Observable<any> {
-    return this.http.delete(`${this.baseUrl}/UserManagement/DeleteShift/${shiftId}`);
+    debugger;
+    return this.http.delete(`${this.baseUrl}/Attendance/DeleteShift/${shiftId}`);
   }
 
   activateShift(shiftId: number): Observable<any> {
@@ -1536,6 +1542,12 @@ downloadDDCopy(fileName: string): Observable<Blob> {
   deactivateShift(shiftId: number): Observable<any> {
     return this.http.put(`${this.baseUrl}/UserManagement/DeactivateShift/${shiftId}`, {});
   }
+
+  getShiftsForDropdown(companyId: number, regionId: number): Observable<ShiftMasterDto[]> {
+  return this.http.get<ShiftMasterDto[]>(
+    `${environment.apiUrl}/Attendance/GetShiftsForDropdown?companyId=${companyId}&regionId=${regionId}`
+  );
+}
 
   // -------------------------------
   // SHIFT ALLOCATION
