@@ -22,53 +22,98 @@ bloodGroups: BloodGroup[] = [];
   pageSize = 5;
   currentPage = 1;
 
-  sortColumn: string = 'bloodGroupID';
+  companyID = 0;
+  regionID = 0;
+  roleId = 0;
+  userId = 0;
+
+  sortColumn = 'bloodGroupID';
   sortDirection: 'asc' | 'desc' = 'desc';
-userId: number = sessionStorage.getItem('UserId') ? Number(sessionStorage.getItem('UserId')) : 0;
-  constructor(private adminService: AdminService, private spinner: NgxSpinnerService) {}
+
+  constructor(
+    private adminService: AdminService,
+    private spinner: NgxSpinnerService
+  ) {}
 
   ngOnInit(): void {
+    const user = sessionStorage.getItem('currentUser');
+    if (user) {
+      const currentUser = JSON.parse(user);
+      this.companyID = currentUser.companyId;
+      this.regionID = currentUser.regionId;
+      this.userId = currentUser.userId;
+      this.roleId = currentUser.roleId;
+    }
+
+    this.resetForm();
     this.loadBloodGroups();
   }
 
   getEmptyBloodGroup(): BloodGroup {
-    return { bloodGroupID: 0, bloodGroupName: '', isActive: true };
+    return {
+      bloodGroupID: 0,
+      companyID: this.companyID,
+      regionID: this.regionID,
+      bloodGroupName: '',
+      description: '',
+      isActive: true,
+      userID: this.userId
+      
+    };
   }
+
+onBloodGroupInput() {
+  this.bloodGroup.bloodGroupName =
+    this.bloodGroup.bloodGroupName?.toUpperCase().trim();
+}
+
 
   loadBloodGroups(): void {
+    debugger
     this.spinner.show();
-    this.adminService.getBloodGroups().subscribe({
+    this.adminService.getBloodGroupsbyID(this.userId).subscribe({
       next: (res: any) => {
-        this.bloodGroups = res.data?.data || res;
-        this.bloodGroups.sort((a: any, b: any) => b.bloodGroupID - a.bloodGroupID);
+        this.bloodGroups = res.data ? [res.data] : [];
         this.spinner.hide();
       },
-      error: () => {
-        this.spinner.hide();
-        Swal.fire('Error', 'Failed to load blood groups.', 'error');
-      }
+      error: () => this.spinner.hide()
     });
   }
 
-  onSubmit(): void {
-    this.spinner.show();
-    const request = this.isEditMode
-      ? this.adminService.updateBloodGroup(this.bloodGroup.bloodGroupID, this.bloodGroup)
-      : this.adminService.createBloodGroup(this.bloodGroup);
+ onSubmit(form: any): void {
 
-    request.subscribe({
-      next: () => {
-        this.spinner.hide();
-        Swal.fire('Success', `${this.bloodGroup.bloodGroupName} saved successfully!`, 'success');
+  this.bloodGroup.companyID = this.companyID;
+  this.bloodGroup.regionID = this.regionID;
+  this.bloodGroup.userID = this.userId;
+
+  this.spinner.show();
+
+  const request = this.isEditMode
+    ? this.adminService.updateBloodGroup(
+        this.bloodGroup.bloodGroupID,
+        this.bloodGroup
+      )
+    : this.adminService.createBloodGroup(this.bloodGroup);
+
+  request.subscribe({
+    next: (res: any) => {
+      if (res.success) {
+        Swal.fire('Success', res.message, 'success');
         this.loadBloodGroups();
-        this.resetForm();
-      },
-      error: () => {
-        this.spinner.hide();
-        Swal.fire('Error', 'Operation failed. Please contact IT Administrator.', 'error');
+        form.resetForm();     
+        this.resetForm();    
+      } else {
+        Swal.fire('Warning', res.message, 'warning');
       }
-    });
-  }
+      this.spinner.hide();
+    },
+    error: (err) => {
+      this.spinner.hide();
+      Swal.fire('Error', err?.error?.message || 'Unexpected error', 'error');
+    }
+  });
+}
+
 
   editBloodGroup(b: BloodGroup): void {
     this.bloodGroup = { ...b };
@@ -76,23 +121,22 @@ userId: number = sessionStorage.getItem('UserId') ? Number(sessionStorage.getIte
   }
 
   deleteBloodGroup(b: BloodGroup): void {
+    debugger
     Swal.fire({
-      title: `Are you sure you want to delete ${b.bloodGroupName}?`,
-      showDenyButton: true,
-      confirmButtonText: 'Confirm'
-    }).then((result) => {
+      title: `Delete ${b.bloodGroupName}?`,
+      showCancelButton: true,
+      confirmButtonText: 'Yes'
+    }).then(result => {
       if (result.isConfirmed) {
         this.spinner.show();
         this.adminService.deleteBloodGroup(b.bloodGroupID).subscribe({
           next: () => {
+             this.loadBloodGroups();
+            Swal.fire('Deleted!', '', 'success');
+           
             this.spinner.hide();
-            Swal.fire('Deleted!', `${b.bloodGroupName} deleted successfully.`, 'success');
-            this.loadBloodGroups();
           },
-          error: () => {
-            this.spinner.hide();
-            Swal.fire('Error', 'Delete failed! Please contact IT Administrator.', 'error');
-          }
+          error: () => this.spinner.hide()
         });
       }
     });
@@ -104,12 +148,10 @@ userId: number = sessionStorage.getItem('UserId') ? Number(sessionStorage.getIte
   }
 
   filteredBloodGroups(): BloodGroup[] {
-    const search = this.searchText.toLowerCase();
-    return this.bloodGroups.filter(b => {
-      const matchesSearch = b.bloodGroupName.toLowerCase().includes(search);
-      const matchesStatus = this.statusFilter === '' || b.isActive === this.statusFilter;
-      return matchesSearch && matchesStatus;
-    });
+    return this.bloodGroups.filter(b =>
+      b.bloodGroupName.toLowerCase().includes(this.searchText.toLowerCase()) &&
+      (this.statusFilter === '' || b.isActive === this.statusFilter)
+    );
   }
 
   get totalPages(): number {
@@ -117,40 +159,36 @@ userId: number = sessionStorage.getItem('UserId') ? Number(sessionStorage.getIte
   }
 
   goToPage(page: number): void {
+    if (page < 1 || page > this.totalPages) return;
     this.currentPage = page;
   }
 
-  // Sorting
   sortTable(column: string): void {
-    if (this.sortColumn === column)
+    if (this.sortColumn === column) {
       this.sortDirection = this.sortDirection === 'asc' ? 'desc' : 'asc';
-    else {
+    } else {
       this.sortColumn = column;
       this.sortDirection = 'asc';
     }
-    this.applySorting();
   }
 
-  applySorting(): void {
-    this.bloodGroups.sort((a: any, b: any) => {
+  get pagedBloodGroups(): BloodGroup[] {
+    const sorted = [...this.filteredBloodGroups()].sort((a: any, b: any) => {
       const valueA = a[this.sortColumn];
       const valueB = b[this.sortColumn];
+
       if (valueA < valueB) return this.sortDirection === 'asc' ? -1 : 1;
       if (valueA > valueB) return this.sortDirection === 'asc' ? 1 : -1;
       return 0;
     });
+
+    const start = (this.currentPage - 1) * this.pageSize;
+    return sorted.slice(start, start + this.pageSize);
   }
 
   getSortIcon(column: string): string {
     if (this.sortColumn !== column) return 'fa-sort';
     return this.sortDirection === 'asc' ? 'fa-sort-up' : 'fa-sort-down';
-  }
-
-  get pagedBloodGroups(): BloodGroup[] {
-    const sorted = [...this.filteredBloodGroups()];
-    this.applySorting();
-    const start = (this.currentPage - 1) * this.pageSize;
-    return sorted.slice(start, start + this.pageSize);
   }
 
   exportAs(type: 'excel' | 'pdf') {
@@ -163,6 +201,7 @@ userId: number = sessionStorage.getItem('UserId') ? Number(sessionStorage.getIte
       'Blood Group Name': b.bloodGroupName,
       'Status': b.isActive ? 'Active' : 'Inactive'
     }));
+
     const ws = XLSX.utils.json_to_sheet(exportData);
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, 'BloodGroups');
@@ -175,7 +214,12 @@ userId: number = sessionStorage.getItem('UserId') ? Number(sessionStorage.getIte
       b.bloodGroupName,
       b.isActive ? 'Active' : 'Inactive'
     ]);
-    autoTable(doc, { head: [['Blood Group Name', 'Status']], body: exportData });
+
+    autoTable(doc, {
+      head: [['Blood Group Name', 'Status']],
+      body: exportData
+    });
+
     doc.save('BloodGroupList.pdf');
   }
 
