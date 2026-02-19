@@ -42,6 +42,12 @@ import { CompensationComponent } from './features/compensation/compensation/comp
 import { RecruitmentProcessComponent } from './features/recruitment/recruitment-process/recruitment-process.component';
 import { WelcomedemoComponent } from './admin/pages/welcomedemo/welcomedemo.component';
 import { ChangePasswordComponent } from './features/change-password/change-password.component';
+import { ControlpanelDashboardComponent } from './AdminControlPanel/layouts/controlpanel-dashboard/controlpanel-dashboard.component';
+import { ControlpanelAdmlayoutComponent } from './AdminControlPanel/layouts/controlpanel-admlayout/controlpanel-admlayout.component';
+import { ControlpanelSidebarComponent } from './AdminControlPanel/layouts/controlpanel-sidebar/controlpanel-sidebar.component';
+import { ControlpanelTopbarComponent } from './AdminControlPanel/layouts/controlpanel-topbar/controlpanel-topbar.component';
+import { ConrolpanelFooterComponent } from './AdminControlPanel/layouts/conrolpanel-footer/conrolpanel-footer.component';
+import { ControlpanelUsersComponent } from './AdminControlPanel/layouts/controlpanel-users/controlpanel-users.component';
 const routes: Routes = [
   { path: '', component: LoginComponent },
   { path: 'dashboard', component: LayoutComponent },
@@ -85,6 +91,26 @@ const routes: Routes = [
 { path: 'financedashboard', component: FinanceDashboardComponent },
 { path: 'managerdashboard', component: ManagerDashboardComponent },
 { path: 'empdashboard', component: EmployeeDashboardComponent },
+
+
+// { path: 'controlpanel-dashboard', component: ControlpanelDashboardComponent },
+// { path: 'controlpanel-admlayout', component: ControlpanelAdmlayoutComponent },
+// { path: 'controlpanel-sidebar', component: ControlpanelSidebarComponent },
+// { path: 'controlpanel-footer', component: ConrolpanelFooterComponent },
+// { path: 'controlpanel-topbar', component: ControlpanelTopbarComponent },
+
+
+{
+  path: 'controlpanel',
+  component: ControlpanelAdmlayoutComponent,
+  children: [
+    { path: 'dashboard', component: ControlpanelDashboardComponent },
+    { path: 'users', component: ControlpanelUsersComponent },
+    { path: '', redirectTo: 'dashboard', pathMatch: 'full' }
+  ]
+},
+
+
   {
     path: 'admin',
     loadChildren: () => import('./admin/admin.module').then(m => m.AdminModule)
