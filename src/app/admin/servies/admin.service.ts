@@ -538,6 +538,18 @@ export interface MaritalStatus {
     companyName?: string;
   regionName?: string;
 }
+export interface AccountType{
+ accountTypeId:number;
+ accountTypeName:string;
+ description:string;
+ isActive:boolean;
+ companyId:number;
+ regionId:number;
+ companyName:string;
+ regionName:string;
+ userId:number;
+}
+
 
 @Injectable({
   providedIn: 'root'
@@ -852,6 +864,44 @@ deleteDesignation(id: number): Observable<any> {
   // Using POST for soft delete pattern as per your Department delete
   return this.http.post(`${this.baseUrl}/MasterData/DeleteDesignation/${id}`,{} );
 }
+
+
+getAccountTypes(userId: number, companyId: number, regionId: number) {
+  return this.http.get<any>(
+    `${this.baseUrl}/MasterData/GetAccountTypes`,
+    {
+      params: {
+        userId: userId,
+        companyId: companyId,
+        regionId: regionId
+      }
+    }
+  );
+}
+
+createAccountType(accountType: AccountType) {
+  return this.http.post(
+    `${this.baseUrl}/MasterData/CreateAccountType`,
+    accountType
+  );
+}
+
+upateAccountType(accountType: AccountType) {
+  return this.http.post(
+    `${this.baseUrl}/MasterData/UpdateAccountType`,
+    accountType
+  );
+}
+deleteAccountType(id: number) {
+  return this.http.post(
+    `${this.baseUrl}/MasterData/DeleteAccountType`,
+    {},
+    {
+      params: { id: id }
+    }
+  );
+}
+
 
 getGenders(companyId: number, regionId: number,userId: number) {
   return this.http.get<any>(

@@ -99,6 +99,9 @@ import { ControlpanelTopbarComponent } from './AdminControlPanel/layouts/control
 import { ControlpanelAdmlayoutComponent } from './AdminControlPanel/layouts/controlpanel-admlayout/controlpanel-admlayout.component';
 import { ConrolpanelFooterComponent } from './AdminControlPanel/layouts/conrolpanel-footer/conrolpanel-footer.component';
 import { ControlpanelUsersComponent } from './AdminControlPanel/layouts/controlpanel-users/controlpanel-users.component';
+import { RaiseTicketComponent } from './features/helpdesk/raise-ticket/raise-ticket.component';
+import { MyTicketsComponent } from './features/helpdesk/my-tickets/my-tickets.component';
+import { ApproveTicketsComponent } from './features/helpdesk/approve-tickets/approve-tickets.component';
 @NgModule({
   declarations: [
     AppComponent,
@@ -192,6 +195,9 @@ import { ControlpanelUsersComponent } from './AdminControlPanel/layouts/controlp
     ControlpanelAdmlayoutComponent,
     ConrolpanelFooterComponent,
     ControlpanelUsersComponent
+    RaiseTicketComponent,
+    MyTicketsComponent,
+    ApproveTicketsComponent
     
   ],
   imports: [
