@@ -1,0 +1,35 @@
+.layout-wrapper {
+  display: flex;
+}
+
+.main-section {
+  margin-left: 240px;
+  width: 100%;
+  background: #f8f9fc;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.page-content {
+  flex: 1;
+  padding: 20px;
+}
+
+.layout-wrapper {
+  display: flex;
+}
+
+.main-section {
+  margin-left: 250px;
+  width: 100%;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: #f4f7fc;
+}
+
+.page-content {
+  flex: 1;
+  padding: 30px;
+}
