@@ -250,14 +250,29 @@ export interface ChangePasswordRequest {
 //   companyId: number;
 //   regionId: number;
 // }
-export interface LeaveType {
-  LeaveTypeId: number;
-  LeaveTypeName: string;
-  LeaveDays: number;
-  IsActive: boolean;
-   CompanyID: number;
-  RegionID: number;
+// export interface LeaveType {
+//   LeaveTypeId: number;
+//   LeaveTypeName: string;
+//   LeaveDays: number;
+//   IsActive: boolean;
+//    CompanyID: number;
+//   RegionID: number;
+// }
+export interface LeaveStatus {
+  leaveStatusID: number;
+  leaveStatusName: string;
+  description: string;
+  isActive: boolean;
+  modifiedBy: number;
+  companyID: number;
+  regionID: number;
+  createdBy: number;
+  userID: number;
 }
+
+
+
+
 export interface ExpenseStatus {
   ExpenseStatusID: number;
   ExpenseStatusName: string;
@@ -1103,26 +1118,53 @@ deleteAttendanceStatus(id: number) {
 // Get All
 getLeaveStatus(companyId: number, regionId: number) {
   return this.http.get<any>(
-    `${this.baseUrl}/LeaveStatus/GetLeaveStatus?CompanyID=${companyId}&RegionID=${regionId}`
+    `${this.baseUrl}/MasterData/GetAllLeaveStatus?companyId=${companyId}&regionId=${regionId}`
   );
 }
 
-// Create
+// getLeaveStatus(companyId: number, regionId: number) {
+//   return this.http.get<any>(
+//     `${this.baseUrl}/GetAllLeaveStatus?companyId=${companyId}&regionId=${regionId}`
+//   );
+// }
+
 createLeaveStatus(data: LeaveStatus) {
-  return this.http.post<any>(`${this.baseUrl}/LeaveStatus/CreateLeaveStatus`, data);
+  return this.http.post<any>(
+    `${this.baseUrl}/MasterData/AddLeaveStatus`,
+    data
+  );
 }
 
-// Update
-updateLeaveStatus(data: LeaveStatus) {
-  return this.http.put<any>(`${this.baseUrl}/LeaveStatus/UpdateLeaveStatus`, data);
+updateLeaveStatus(id: number, data: LeaveStatus) {
+  return this.http.put<any>(
+    `${this.baseUrl}/MasterData/UpdateLeaveStatus?id=${id}`,
+    data
+  );
 }
 
-// Delete
 deleteLeaveStatus(id: number) {
   return this.http.delete<any>(
-    `${this.baseUrl}/LeaveStatus/DeleteLeaveStatus?LeaveStatusID=${id}`
+    `${this.baseUrl}/MasterData/DeleteLeaveStatus/${id}`
   );
 }
+
+
+// Create
+// createLeaveStatus(data: LeaveStatus) {
+//   return this.http.post<any>(`${this.baseUrl}/LeaveStatus/CreateLeaveStatus`, data);
+// }
+
+// // Update
+// updateLeaveStatus(data: LeaveStatus) {
+//   return this.http.put<any>(`${this.baseUrl}/LeaveStatus/UpdateLeaveStatus`, data);
+// }
+
+// // Delete
+// deleteLeaveStatus(id: number) {
+//   return this.http.delete<any>(
+//     `${this.baseUrl}/LeaveStatus/DeleteLeaveStatus?LeaveStatusID=${id}`
+//   );
+// }
 
  getLeaveType(): Observable<LeaveType[]> {
     return this.http.get<LeaveType[]>(`${this.baseUrl}/MasterData/GetLeaveType`);

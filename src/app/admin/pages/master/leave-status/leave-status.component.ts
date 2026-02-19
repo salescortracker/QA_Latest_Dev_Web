@@ -12,151 +12,180 @@ import { NgxSpinnerService } from 'ngx-spinner';
   styleUrl: './leave-status.component.css'
 })
 export class LeaveStatusComponent {
-  companyId = 1;
-  regionId = 1;
-
+    leaveList: LeaveStatus[] = [];
   leave: LeaveStatus = this.getEmptyLeave();
-  leaveList: LeaveStatus[] = [];
-  leaveModel: any = {};
 
   isEditMode = false;
+
   searchText = '';
   statusFilter: boolean | '' = '';
 
-  currentPage = 1;
   pageSize = 5;
+  currentPage = 1;
 
-  sortColumn = 'LeaveStatusID';
-  sortDirection: 'asc' | 'desc' = 'desc';
+  sortColumn = 'leaveStatusName';
+  sortDirection: 'asc' | 'desc' = 'asc';
 
   showUploadPopup = false;
+  leaveModel: any;
 
-  constructor(private admin: AdminService, private spinner: NgxSpinnerService) {}
+  companyID = 0;
+  regionID = 0;
+  userId = 0;
+
+  constructor(
+    private adminService: AdminService,
+    private spinner: NgxSpinnerService
+  ) {}
 
   ngOnInit(): void {
+    const user = sessionStorage.getItem('currentUser');
+    if (user) {
+      const currentUser = JSON.parse(user);
+      this.companyID = currentUser.companyId;
+      this.regionID = currentUser.regionId;
+      this.userId = currentUser.userId;
+    }
+
+    this.leave = this.getEmptyLeave();
     this.loadLeaveStatus();
   }
 
-  /** Default new record */
-  getEmptyLeave(): LeaveStatus {
-    return {
-      LeaveStatusID: 0,
-      LeaveStatusName: '',
-      IsActive: true,
-      CompanyID: this.companyId,
-      RegionID: this.regionId
-    };
-  }
+ getEmptyLeave(): LeaveStatus {
+  return {
+    LeaveStatusID: 0,
+    LeaveStatusName: '',
+    Description: '',
+    isActive: true,
+    ModifiedBy: 0,
+    CompanyID: this.companyID,
+    RegionID: this.regionID,
+    CreatedBy: 0,
+    UserID: this.userId
+  } as any;
+}
 
-  /** Load Data */
+
+  /* ================= LOAD ================= */
+
   loadLeaveStatus(): void {
     this.spinner.show();
-    this.admin.getLeaveStatus(this.companyId, this.regionId).subscribe({
-      next: res => {
-        this.leaveList = res.data?.data || res;
+
+    this.adminService
+      .getLeaveStatus(this.companyID, this.regionID)
+      .subscribe({
+        next: (res: any) => {
+          if (res.success) {
+            this.leaveList = res.data || [];
+            this.currentPage = 1;
+          } else {
+            Swal.fire('Warning', res.message, 'warning');
+          }
+          this.spinner.hide();
+        },
+        error: (err) => {
+          this.spinner.hide();
+          Swal.fire('Error', err?.error?.message || 'Failed to load data', 'error');
+        }
+      });
+  }
+
+  /* ================= SUBMIT ================= */
+
+  onSubmit(form: any): void {
+
+    this.leave.companyID = this.companyID;
+    this.leave.regionID = this.regionID;
+    this.leave.userID = this.userId;
+
+    this.spinner.show();
+
+    const request = this.isEditMode
+      ? this.adminService.updateLeaveStatus(this.leave.leaveStatusID, this.leave)
+      : this.adminService.createLeaveStatus(this.leave);
+
+    request.subscribe({
+      next: (res: any) => {
+        if (res.success) {
+          Swal.fire('Success', res.message, 'success');
+          this.loadLeaveStatus();
+          form.resetForm();
+          this.leave = this.getEmptyLeave();
+          this.isEditMode = false;
+        } else {
+          Swal.fire('Warning', res.message, 'warning');
+        }
         this.spinner.hide();
       },
-      error: () => {
+      error: (err) => {
         this.spinner.hide();
-        Swal.fire('Error', 'Failed to load Leave Status.', 'error');
+        Swal.fire('Error', err?.error?.message || 'Unexpected error', 'error');
       }
     });
   }
 
-  /** Submit Create / Update */
-  onSubmit(): void {
-    this.spinner.show();
-    if (this.isEditMode) {
-      this.admin.updateLeaveStatus(this.leave).subscribe({
-        next: () => {
-          this.spinner.hide();
-          Swal.fire('Updated', 'Leave Status updated successfully!', 'success');
-          this.loadLeaveStatus();
-          this.resetForm();
-        },
-        error: () => {
-          this.spinner.hide();
-          Swal.fire('Error', 'Update failed.', 'error');
-        }
-      });
-    } else {
-      this.admin.createLeaveStatus(this.leave).subscribe({
-        next: () => {
-          this.spinner.hide();
-          Swal.fire('Created', 'Leave Status created successfully!', 'success');
-          this.loadLeaveStatus();
-          this.resetForm();
-        },
-        error: () => {
-          this.spinner.hide();
-          Swal.fire('Error', 'Create failed.', 'error');
-        }
-      });
-    }
-  }
+  /* ================= EDIT ================= */
 
-  /** Edit */
   editLeave(item: LeaveStatus): void {
     this.leave = { ...item };
     this.isEditMode = true;
   }
 
-  /** Delete */
+  /* ================= DELETE ================= */
+
   deleteLeave(item: LeaveStatus): void {
     Swal.fire({
-      title: `Delete "${item.LeaveStatusName}"?`,
+      title: `Delete ${item.leaveStatusName}?`,
       showCancelButton: true,
-      confirmButtonText: 'Delete'
+      confirmButtonText: 'Yes'
     }).then(result => {
       if (result.isConfirmed) {
+
         this.spinner.show();
-        this.admin.deleteLeaveStatus(item.LeaveStatusID).subscribe({
-          next: () => {
-            this.spinner.hide();
-            Swal.fire('Deleted', 'Leave Status deleted successfully.', 'success');
-            this.loadLeaveStatus();
-          },
-          error: () => {
-            this.spinner.hide();
-            Swal.fire('Error', 'Delete failed.', 'error');
-          }
-        });
+
+        this.adminService
+          .deleteLeaveStatus(item.leaveStatusID)
+          .subscribe({
+            next: (res: any) => {
+              if (res.success) {
+                Swal.fire('Deleted!', res.message, 'success');
+                this.loadLeaveStatus();
+              }
+              this.spinner.hide();
+            },
+            error: () => {
+              this.spinner.hide();
+              Swal.fire('Error', 'Delete failed', 'error');
+            }
+          });
       }
     });
   }
 
-  /** Reset form */
-  resetForm(): void {
-    this.leave = this.getEmptyLeave();
-    this.isEditMode = false;
-  }
+  /* ================= FILTER ================= */
 
-  /** Filtered Data */
   filteredLeave(): LeaveStatus[] {
-    return this.leaveList.filter(c => {
-      const matchSearch = c.LeaveStatusName.toLowerCase().includes(this.searchText.toLowerCase());
-      const matchStatus = this.statusFilter === '' || c.IsActive === this.statusFilter;
-      return matchSearch && matchStatus;
-    });
+    return this.leaveList.filter(l =>
+      l.leaveStatusName.toLowerCase().includes(this.searchText.toLowerCase()) &&
+      (this.statusFilter === '' || l.isActive === this.statusFilter)
+    );
   }
 
-  /** Sorting */
-  sortTable(column: string) {
-    if (this.sortColumn === column)
-      this.sortDirection = this.sortDirection === 'asc' ? 'desc' : 'asc';
-    else {
-      this.sortColumn = column;
-      this.sortDirection = 'asc';
-    }
+  /* ================= PAGINATION ================= */
+
+  get totalPages(): number {
+    return Math.ceil(this.filteredLeave().length / this.pageSize) || 1;
   }
 
-  /** Pagination + Sorted List */
+  goToPage(page: number): void {
+    if (page < 1 || page > this.totalPages) return;
+    this.currentPage = page;
+  }
+
   get pagedLeave(): LeaveStatus[] {
-    const filtered = this.filteredLeave();
-
-    filtered.sort((a: any, b: any) => {
-      const valA = a[this.sortColumn]?.toString().toLowerCase() || '';
-      const valB = b[this.sortColumn]?.toString().toLowerCase() || '';
+    const sorted = [...this.filteredLeave()].sort((a: any, b: any) => {
+      const valA = a[this.sortColumn];
+      const valB = b[this.sortColumn];
 
       if (valA < valB) return this.sortDirection === 'asc' ? -1 : 1;
       if (valA > valB) return this.sortDirection === 'asc' ? 1 : -1;
@@ -164,65 +193,86 @@ export class LeaveStatusComponent {
     });
 
     const start = (this.currentPage - 1) * this.pageSize;
-    return filtered.slice(start, start + this.pageSize);
+    return sorted.slice(start, start + this.pageSize);
   }
 
-  get totalPages(): number {
-    return Math.ceil(this.filteredLeave().length / this.pageSize) || 1;
-  }
+  /* ================= SORT ================= */
 
-  goToPage(page: number): void {
-    if (page < 1) page = 1;
-    if (page > this.totalPages) page = this.totalPages;
-    this.currentPage = page;
+  sortTable(column: string): void {
+    if (this.sortColumn === column) {
+      this.sortDirection =
+        this.sortDirection === 'asc' ? 'desc' : 'asc';
+    } else {
+      this.sortColumn = column;
+      this.sortDirection = 'asc';
+    }
   }
 
   getSortIcon(column: string): string {
     if (this.sortColumn !== column) return 'fa-sort';
-    return this.sortDirection === 'asc' ? 'fa-sort-up' : 'fa-sort-down';
+    return this.sortDirection === 'asc'
+      ? 'fa-sort-up'
+      : 'fa-sort-down';
   }
 
-  /** Export */
-  exportAs(type: 'excel' | 'pdf') {
-    type === 'excel' ? this.exportExcel() : this.exportPDF();
+  /* ================= BULK ================= */
+
+  openUploadPopup(): void {
+    this.showUploadPopup = true;
   }
 
-  exportExcel() {
-    const data = this.leaveList.map(c => ({
-      'Leave Status Name': c.LeaveStatusName,
-      'Active': c.IsActive ? 'Yes' : 'No'
-    }));
-    const ws = XLSX.utils.json_to_sheet(data);
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, 'Leave Status');
-    XLSX.writeFile(wb, 'LeaveStatus.xlsx');
+  closeUploadPopup(): void {
+    this.showUploadPopup = false;
   }
 
-  exportPDF() {
+exportAs(type: 'pdf' | 'excel'): void {
+
+  const data = this.filteredLeave();
+
+  if (!data.length) {
+    Swal.fire('Info', 'No data to export', 'info');
+    return;
+  }
+
+  if (type === 'excel') {
+    const worksheet = XLSX.utils.json_to_sheet(data);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'LeaveStatus');
+    XLSX.writeFile(workbook, 'LeaveStatus.xlsx');
+  }
+
+  if (type === 'pdf') {
     const doc = new jsPDF();
-    const data = this.leaveList.map(c => [c.LeaveStatusName, c.IsActive ? 'Yes' : 'No']);
-    autoTable(doc, { head: [['Leave Status Name', 'Active']], body: data });
+
+    autoTable(doc, {
+      head: [['ID', 'Name', 'Description', 'Status']],
+      body: data.map(item => [
+        item.leaveStatusID,
+        item.leaveStatusName,
+        item.description,
+        item.isActive ? 'Active' : 'Inactive'
+      ])
+    });
+
     doc.save('LeaveStatus.pdf');
   }
+}
 
-  /** Bulk Upload */
-  openUploadPopup() { this.showUploadPopup = true; }
-  closeUploadPopup() { this.showUploadPopup = false; }
-
-  onBulkUploadComplete(data: any): void {
-    if (!data || !data.length) {
-      Swal.fire('Info', 'No valid data found in uploaded file.', 'info');
-      return;
-    }
-
-    this.admin.bulkInsertData('LeaveStatus', data).subscribe({
-      next: () => {
-        Swal.fire('Success', 'Leave Status uploaded successfully!', 'success');
-        this.loadLeaveStatus();
-        this.closeUploadPopup();
-      },
-      error: () => Swal.fire('Error', 'Failed to upload data.', 'error')
-    });
-  }
-
+ 
+   // Bulk Upload
+ 
+   onBulkUploadComplete(data: any): void {
+     if (data && data.length > 0) {
+       this.adminService.bulkInsertData('LeaveStatus', data).subscribe({
+         next: () => {
+           Swal.fire('Success', 'Leave Status uploaded successfully!', 'success');
+           this.loadLeaveStatus();
+           this.closeUploadPopup();
+         },
+         error: () => Swal.fire('Error', 'Failed to upload leave status.', 'error')
+       });
+     } else {
+       Swal.fire('Info', 'No valid data found in uploaded file.', 'info');
+     }
+   }
 }
