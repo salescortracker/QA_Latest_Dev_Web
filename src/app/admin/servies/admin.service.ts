@@ -671,6 +671,27 @@ export class AdminService {
   // deleteUser(id: number): Observable<void> {
   //   return this.delete('UserManagement/deleteUser', id);
   // }
+
+
+ getPriorities(userId: number) {
+  return this.http.get(`${this.baseUrl}/MasterData/priorities?userId=${userId}`);
+}
+
+createPriority(data: any) {
+  return this.http.post(`${this.baseUrl}/MasterData/CreatePriority`, data);
+}
+
+updatePriority(data: any) {
+  return this.http.post(`${this.baseUrl}/MasterData/UpdatePriority`, data);
+}
+
+deletePriority(id: number) {
+  return this.http.post(`${this.baseUrl}/MasterData/DeletePriority?id=${id}`, {});
+}
+
+
+
+
   getAllUsers(): Observable<User[]> {
     return this.http.get<User[]>(`${this.baseUrl}/UserManagement/GetAllUsers?userCompanyId=`+ (sessionStorage.getItem('UserId') ? Number(sessionStorage.getItem('UserId')) : 0));
   }
