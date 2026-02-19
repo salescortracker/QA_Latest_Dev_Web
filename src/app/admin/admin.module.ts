@@ -64,6 +64,7 @@ import { HttpClientModule } from '@angular/common/http';
 import { CommonUploadComponent } from './shared/common-upload/common-upload.component';
 import { SubmenuComponent } from './layout/submenu/submenu.component';
 import { WelcomedemoComponent } from './pages/welcomedemo/welcomedemo.component';
+import { PriorityComponent } from './pages/master/priority/priority.component';
 
 @NgModule({
   declarations: [
@@ -127,7 +128,8 @@ import { WelcomedemoComponent } from './pages/welcomedemo/welcomedemo.component'
     MenusComponent,
     CommonUploadComponent,
     SubmenuComponent,
-    WelcomedemoComponent
+    WelcomedemoComponent,
+    PriorityComponent
  
   
 
