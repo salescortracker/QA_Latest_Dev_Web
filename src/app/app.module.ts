@@ -93,6 +93,7 @@ import { ScreeningComponent } from './features/recruitment/screening/screening.c
 import { EmployeeResignationHrApprovalComponent } from './features/employee-profile/employee-resignation/employee-resignation-hr-approval/employee-resignation-hr-approval.component';
 import { EmployeeResignationManagerApprovalComponent } from './features/employee-profile/employee-resignation/employee-resignation-manager-approval/employee-resignation-manager-approval.component';
 import { EmployeeResignationDetailsComponent } from './features/employee-profile/employee-resignation/employee-resignation-details/employee-resignation-details.component';
+import { ShiftsComponent } from './shifts/shifts.component';
 import { RaiseTicketComponent } from './features/helpdesk/raise-ticket/raise-ticket.component';
 import { MyTicketsComponent } from './features/helpdesk/my-tickets/my-tickets.component';
 import { ApproveTicketsComponent } from './features/helpdesk/approve-tickets/approve-tickets.component';
@@ -183,6 +184,7 @@ import { ApproveTicketsComponent } from './features/helpdesk/approve-tickets/app
     EmployeeResignationHrApprovalComponent,
     EmployeeResignationManagerApprovalComponent,
     EmployeeResignationDetailsComponent,
+    ShiftsComponent      
     RaiseTicketComponent,
     MyTicketsComponent,
     ApproveTicketsComponent

@@ -36,6 +36,8 @@
               <th (click)="toggleSort('roleId')" class="cursor-pointer">#</th>
               <th (click)="toggleSort('roleName')" class="cursor-pointer">Role Name</th>
               <th (click)="toggleSort('roleDescription')" class="cursor-pointer">Description</th>
+              <th>CompanyName</th>   
+              <th>RegionName</th>  
               <th (click)="toggleSort('isActive')" class="cursor-pointer">Status</th>
               <th class="text-end">Actions</th>
             </tr>
@@ -46,13 +48,15 @@
               <td>{{ (pageNumber - 1) * pageSize + i + 1 }}</td>
               <td>{{ r.roleName }}</td>
               <td>{{ r.roleDescription || '-' }}</td>
+              <td>{{ r.companyName || '-' }}</td>
+              <td>{{ r.regionName || '-' }}</td>
               <td>
                 <span [class]="'badge ' + (r.isActive ? 'bg-success' : 'bg-secondary')">
                   {{ r.isActive ? 'Active' : 'Inactive' }}
                 </span>
               </td>
               <td class="text-end">
-                <button class="btn btn-sm btn-outline-primary me-2" (click)="editRole(r)">
+                <button class="btn btn-sm btn-outline-primary me-2" (click)="editRole(r)" data-bs-toggle="modal" data-bs-target="#addRoleModal">
                   <i class="fa fa-edit"></i>
                 </button>
                 <button class="btn btn-sm btn-outline-danger" (click)="deleteRole(r)">
@@ -122,6 +126,21 @@
                 <textarea class="form-control" rows="2"
                   [(ngModel)]="role.roleDescription" name="roleDescription"
                   placeholder="Enter description"></textarea>
+              </div>
+              <div class="mb-3">
+                <label class="form-label fw-semibold">Company <span class="text-danger">*</span></label>
+                <select class="form-select" [(ngModel)]="role.companyId" name="companyId" (ngModelChange)="onCompanyChange($event)" required>
+                  <option value="">Select Company</option>
+                  <option *ngFor="let c of companies" [ngValue]="c.companyId">{{ c.companyName }}</option>
+                </select>
+              </div>
+
+              <div class="mb-3">
+                <label class="form-label fw-semibold">Region <span class="text-danger">*</span></label>
+                <select class="form-select" [(ngModel)]="role.regionId"  name="regionId" required>
+                  <option value="">Select Region</option>
+                  <option *ngFor="let r of filteredRegions" [ngValue]="r.regionID">{{ r.regionName }}</option>
+                </select>
               </div>
 
               <div class="form-check">
