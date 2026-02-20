@@ -94,6 +94,9 @@ import { EmployeeResignationHrApprovalComponent } from './features/employee-prof
 import { EmployeeResignationManagerApprovalComponent } from './features/employee-profile/employee-resignation/employee-resignation-manager-approval/employee-resignation-manager-approval.component';
 import { EmployeeResignationDetailsComponent } from './features/employee-profile/employee-resignation/employee-resignation-details/employee-resignation-details.component';
 import { ShiftsComponent } from './shifts/shifts.component';
+import { RaiseTicketComponent } from './features/helpdesk/raise-ticket/raise-ticket.component';
+import { MyTicketsComponent } from './features/helpdesk/my-tickets/my-tickets.component';
+import { ApproveTicketsComponent } from './features/helpdesk/approve-tickets/approve-tickets.component';
 @NgModule({
   declarations: [
     AppComponent,
@@ -182,6 +185,10 @@ import { ShiftsComponent } from './shifts/shifts.component';
     EmployeeResignationManagerApprovalComponent,
     EmployeeResignationDetailsComponent,
     ShiftsComponent      
+    RaiseTicketComponent,
+    MyTicketsComponent,
+    ApproveTicketsComponent
+    
   ],
   imports: [
     BrowserModule, ReactiveFormsModule,
