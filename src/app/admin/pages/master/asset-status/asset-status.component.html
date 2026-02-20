@@ -34,17 +34,55 @@
             <div class="col-md-6">
               <label class="form-label fw-semibold">Asset Status</label>
               <input type="text" class="form-control" name="AssetStatusName"
-                [(ngModel)]="status.AssetStatusName"
+                [(ngModel)]="status.assetStatusName"
                 placeholder="Enter Asset Status"
                 required
               />
             </div>
+
+
+               <div class="row">
+
+  <!-- Company Dropdown -->
+ <div class="col-md-4">
+  <label class="form-label">Company</label>
+  <select class="form-select"
+          [(ngModel)]="status.companyId"
+          name="CompanyID">
+    <option [ngValue]="0">-- Select Company --</option>
+    <option *ngFor="let c of companies"
+            [ngValue]="c.companyId">
+      {{ c.companyName }}
+    </option>
+  </select>
+</div>
+
+
+  <!-- Region Dropdown -->
+  <div class="col-md-4">
+    <label class="form-label">Region <span class="text-danger">*</span></label>
+    <select class="form-select"
+            [(ngModel)]="status.regionId"
+            name="regionId">
+      <option value="0">-- Select Region --</option>
+      <option *ngFor="let r of regions"
+              [ngValue]="r.regionId">
+        {{ r.regionName }}
+      </option>
+    </select>
+  </div>
+
+</div>
+
+
+
+
             <div class="col-md-6 d-flex align-items-center">
               <div class="form-check form-switch mt-3">
                 <input class="form-check-input" type="checkbox" id="isActiveSwitch"
-                  [(ngModel)]="status.IsActive" name="IsActive">
+                  [(ngModel)]="status.isActive" name="IsActive">
                 <label class="form-check-label ms-2" for="isActiveSwitch">
-                  {{ status.IsActive ? 'Active' : 'Inactive' }}
+                  {{ status.isActive ? 'Active' : 'Inactive' }}
                 </label>
               </div>
             </div>
@@ -93,10 +131,10 @@
             <tbody>
               <tr *ngFor="let s of pagedStatuses; let i = index">
                 <td>{{ (currentPage - 1) * pageSize + i + 1 }}</td>
-                <td>{{ s.AssetStatusName }}</td>
+                <td>{{ s.assetStatusName  }}</td>
                 <td>
-                  <span class="badge" [ngClass]="s.IsActive ? 'bg-success' : 'bg-secondary'">
-                    {{ s.IsActive ? 'Active' : 'Inactive' }}
+                  <span class="badge" [ngClass]="s.isActive ? 'bg-success' : 'bg-secondary'">
+                    {{ s.isActive ? 'Active' : 'Inactive' }}
                   </span>
                 </td>
                 <td class="text-center">

@@ -16,6 +16,8 @@ filtersForm!: FormGroup;
   currencies: string[] = [];
 
   managerId!: number;
+  companyId!: number;
+  regionId!: number;
 
   // UI flags
   noRecordsFound = false;

@@ -183,13 +183,26 @@ export interface Designation {
   isDeleted?: boolean;
 }
 
+// export interface AssetStatus {
+//   AssetStatusId: number;
+//   assetStatusName : string;
+//   IsActive: boolean;
+//   CompanyID: number;
+//   RegionId: number;
+//   Description?: string;
+// }
+
 export interface AssetStatus {
-  AssetStatusID: number;
-  AssetStatusName: string;
-  IsActive: boolean;
-  CompanyID: number;
-  RegionID: number;
+  assetStatusId: number;
+  assetStatusName: string;
+  companyId: number;
+  regionId: number;
+  description: string;
+  isActive: boolean;
+  userId?: number;
+
 }
+
 export interface PolicyCategory {
   PolicyCategoryID?: number;
   CompanyID: number;
@@ -1009,24 +1022,35 @@ deleteAttachmentType(id: number) {
   }
 
   // GET all asset statuses
-  getAssetStatuses(companyId: number, regionId: number): Observable<any> {
-    return this.http.get(`${this.baseUrl}/asset-status?companyId=${companyId}&regionId=${regionId}`);
+  getAssetStatuses(userId: number): Observable<any> {
+    return this.http.get(`${this.baseUrl}/MasterData/statuses?userId=${userId}`);
   }
 
   // CREATE
-  createAssetStatus(status: AssetStatus): Observable<any> {
-    return this.http.post(`${this.baseUrl}/asset-status`, status);
-  }
+ createAssetStatus(data: any) {
+  return this.http.post(
+    `${this.baseUrl}/MasterData/asset-statuscreate`,
+    data
+  );
+}
+
 
   // UPDATE
-  updateAssetStatus(status: AssetStatus): Observable<any> {
-    return this.http.put(`${this.baseUrl}/asset-status/${status.AssetStatusID}`, status);
-  }
+ updateAssetStatus(status: AssetStatus, userId: number): Observable<any> {
+  return this.http.put(
+    `${this.baseUrl}/MasterData/asset-statusUpdate/${status.assetStatusId}?userId=${userId}`,
+    status
+  );
+}
+
 
   // DELETE
-  deleteAssetStatus(id: number): Observable<any> {
-    return this.http.delete(`${this.baseUrl}/asset-status/${id}`);
-  }
+ deleteAssetStatus(id: number, userId: number): Observable<any> {
+  return this.http.delete(
+    `${this.baseUrl}/MasterData/asset-statusDelete/${id}?userId=${userId}`
+  );
+}
+
 
   // GET all helpdesk categories
   getHelpdeskCategories(companyId: number, regionId: number): Observable<any> {
