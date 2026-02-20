@@ -65,9 +65,13 @@ export class AssetService {
     return this.http.post<void>(`${this.apiUrl}/DeleteAsset?id=${assetId}`,{});
   }
   // ✅ STATUS API
-  getAssetStatuses$() {
-    return this.http.get<AssetStatus[]>(`${this.apiUrl}/statuses`);
-  }
+getAssetStatuses$() {
+  const user = JSON.parse(sessionStorage.getItem('currentUser') || '{}');
+
+  return this.http.get<AssetStatus[]>(
+    `${this.apiUrl}/asset-status?companyId=${user.companyId}&regionId=${user.regionId}`
+  );
+}
  // ✅ NEW: Get all employees
 
 getAllEmployees$(): Observable<EmployeeDto[]> {

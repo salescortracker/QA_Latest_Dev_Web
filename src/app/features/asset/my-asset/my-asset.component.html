@@ -32,8 +32,8 @@
       class="form-select"
       [(ngModel)]="filter.assetStatusId"
       name="assetStatusId">
-      <option value="">All</option>
-      <option *ngFor="let s of statuses" [value]="s.assetStatusId">
+      <option [ngValue]="">All</option>
+      <option *ngFor="let s of statuses" [ngValue]="s.assetStatusId">
         {{ s.assetStatusName }}
       </option>
     </select>

@@ -14,10 +14,10 @@ import { AssetStatus } from '../../../servies/admin.service';
 })
 export class AssetStatusComponent {
 
-  companyId = 1;
-  regionId = 1;
+  
 
-  status: AssetStatus = this.getEmptyStatus();
+ status!: AssetStatus;
+
   statuses: AssetStatus[] = [];
   statusesModel: any = {};
 
@@ -31,28 +31,90 @@ export class AssetStatusComponent {
   sortDirection: 'asc' | 'desc' = 'desc';
 
   showUploadPopup = false;
+companies: any[] = [];
+regions: any[] = [];
+
+companyId!: number;
+regionId!: number;
+userId!: number;
+
 
   constructor(private adminService: AdminService, private spinner: NgxSpinnerService) {}
 
   ngOnInit(): void {
+    
+  this.companyId = Number(sessionStorage.getItem('CompanyId'));
+  this.regionId = Number(sessionStorage.getItem('RegionId'));
+  this.userId = Number(sessionStorage.getItem('UserId'));
+
+  this.status = this.getEmptyStatus();
+
     this.loadStatuses();
+    this.loadCompanies();
+  this.loadRegions();
   }
 
-  getEmptyStatus(): AssetStatus {
-    return {
-      AssetStatusID: 0,
-      AssetStatusName: '',      
-      IsActive: true,
-      CompanyID: this.companyId,
-      RegionID: this.regionId
-    };
+  private loadUserFromSession(): void {
+  const userJson = sessionStorage.getItem('currentUser');
+
+  if (!userJson) {
+    Swal.fire('Error', 'User not logged in', 'error');
+    return;
   }
+
+  const user = JSON.parse(userJson);
+
+  this.userId = user.userId;
+  this.companyId = user.companyId; // ✅ ADD THIS
+
+  if (!this.userId) {
+    Swal.fire('Error', 'Invalid user session', 'error');
+    return;
+  }
+
+  this.loadStatuses();
+}
+loadCompanies(): void {
+  this.adminService.getCompanies(null, this.userId).subscribe({
+    next: (res: any[]) => {
+      this.companies = res || [];
+    },
+    error: () => {
+      Swal.fire('Error', 'Failed to load companies.', 'error');
+    }
+  });
+}
+
+loadRegions(): void {
+  this.adminService.getRegions(null, this.userId).subscribe({
+    next: (res: any[]) => {
+      this.regions = res || [];
+    },
+    error: () => {
+      Swal.fire('Error', 'Failed to load regions.', 'error');
+    }
+  });
+}
+getEmptyStatus(): AssetStatus {
+  return {
+    assetStatusId: 0,
+    assetStatusName : '',
+    isActive: true,
+    companyId: 0,
+    regionId: 0,
+    description: '',
+    userId: 0
+  };
+}
+
 
   loadStatuses(): void {
     this.spinner.show();
-    this.adminService.getAssetStatuses(this.companyId, this.regionId).subscribe({
-      next: res => {
-        this.statuses = res.data?.data || res;
+    this.adminService.getAssetStatuses(this.userId).subscribe({
+      next: (res: AssetStatus[]) => {
+        console.log(res);
+
+        this.statuses = res;
         this.spinner.hide();
       },
       error: () => {
@@ -65,10 +127,10 @@ export class AssetStatusComponent {
   onSubmit(): void {
     this.spinner.show();
     if (this.isEditMode) {
-      this.adminService.updateAssetStatus(this.status).subscribe({
+      this.adminService.updateAssetStatus(this.status,this.userId).subscribe({
         next: () => {
           this.spinner.hide();
-          Swal.fire('Updated', `${this.status.AssetStatusName} updated successfully!`, 'success');
+          Swal.fire('Updated', `${this.status.assetStatusName } updated successfully!`, 'success');
           this.loadStatuses();
           this.resetForm();
         },
@@ -78,10 +140,21 @@ export class AssetStatusComponent {
         }
       });
     } else {
+        this.status.userId = this.userId;
+        this.status.companyId = this.companyId;
+      this.status.regionId = this.regionId;
+
+
       this.adminService.createAssetStatus(this.status).subscribe({
         next: () => {
+          if (!this.status.regionId || this.status.regionId === 0) {
+              Swal.fire('Validation', 'Please select region', 'warning');
+              this.spinner.hide();
+              return;
+            }
+
           this.spinner.hide();
-          Swal.fire('Created', `${this.status.AssetStatusName} added successfully!`, 'success');
+          Swal.fire('Created', `${this.status.assetStatusName } added successfully!`, 'success');
           this.loadStatuses();
           this.resetForm();
         },
@@ -100,16 +173,16 @@ export class AssetStatusComponent {
 
   deleteStatus(s: AssetStatus): void {
     Swal.fire({
-      title: `Delete ${s.AssetStatusName}?`,
+      title: `Delete ${s.assetStatusName }?`,
       showDenyButton: true,
       confirmButtonText: 'Confirm'
     }).then(result => {
       if (result.isConfirmed) {
         this.spinner.show();
-        this.adminService.deleteAssetStatus(s.AssetStatusID).subscribe({
+        this.adminService.deleteAssetStatus(s.assetStatusId, this.userId).subscribe({
           next: () => {
             this.spinner.hide();
-            Swal.fire('Deleted', `${s.AssetStatusName} deleted successfully.`, 'success');
+            Swal.fire('Deleted', `${s.assetStatusName } deleted successfully.`, 'success');
             this.loadStatuses();
           },
           error: () => {
@@ -129,8 +202,8 @@ export class AssetStatusComponent {
   /** Filtering + Sorting + Pagination */
   filteredStatuses(): AssetStatus[] {
     return this.statuses.filter(s => {
-      const matchesSearch = s.AssetStatusName.toLowerCase().includes(this.searchText.toLowerCase());
-      const matchesStatus = this.statusFilter === '' || s.IsActive === this.statusFilter;
+      const matchesSearch = s.assetStatusName .toLowerCase().includes(this.searchText.toLowerCase());
+      const matchesStatus = this.statusFilter === '' || s.isActive === this.statusFilter;
       return matchesSearch && matchesStatus;
     });
   }
@@ -175,8 +248,8 @@ export class AssetStatusComponent {
 
   exportExcel() {
     const data = this.statuses.map(s => ({
-      'Asset Status': s.AssetStatusName,
-      'Active': s.IsActive ? 'Yes' : 'No'
+      'Asset Status': s.assetStatusName ,
+      'Active': s.isActive ? 'Yes' : 'No'
     }));
     const ws = XLSX.utils.json_to_sheet(data);
     const wb = XLSX.utils.book_new();
@@ -186,7 +259,7 @@ export class AssetStatusComponent {
 
   exportPDF() {
     const doc = new jsPDF();
-    const data = this.statuses.map(s => [s.AssetStatusName, s.IsActive ? 'Yes' : 'No']);
+    const data = this.statuses.map(s => [s.assetStatusName , s.isActive ? 'Yes' : 'No']);
     autoTable(doc, { head: [['Asset Status', 'Active']], body: data });
     doc.save('AssetStatuses.pdf');
   }

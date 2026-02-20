@@ -14,6 +14,8 @@ export class MyAssetComponent {
   filteredAssets: AssetDto[] = [];
   statuses: AssetStatus[] = [];
   userId!: number;
+  companyId!: number;
+  regionId!: number;
 
   // ✅ FILTER MODEL
   filter = {
@@ -27,6 +29,9 @@ export class MyAssetComponent {
 
   ngOnInit(): void {
     this.loadUserFromSession();
+  if (this.companyId && this.regionId) {
+    this.loadStatuses();
+  }
     this.loadStatuses();
     this.loadAssets();
   }
@@ -44,6 +49,8 @@ export class MyAssetComponent {
 
     const user = JSON.parse(userJson);
     this.userId = user.userId;
+    this.companyId = user.companyId;
+    this.regionId = user.regionId;
 
     if (!this.userId) {
       Swal.fire('Error', 'Invalid user session', 'error');
@@ -70,6 +77,7 @@ export class MyAssetComponent {
      LOAD STATUSES
   ======================= */
   loadStatuses(): void {
+      if (!this.companyId || !this.regionId) return;
     this.assetService.getAssetStatuses$().subscribe({
       next: (res) => this.statuses = res,
       error: () =>
