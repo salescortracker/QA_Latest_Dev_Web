@@ -212,13 +212,14 @@ export interface ProjectStatus {
   RegionID: number;
 }
 export interface AttendanceStatus {
-  AttendanceStatusID: number;
-  AttendanceStatusName: string;
-  IsActive: boolean;
-  CompanyID: number;
-  RegionID: number;
-
-  
+ attendanceStatusId: number;
+  attendanceStatusName: string;
+  isActive: boolean;
+  companyId: number;
+  regionId: number;
+  description?: string;
+  createdBy:number;
+  modifiedBy:number;
 }
 export interface ExpenseCategory {
   ExpenseCategoryID: number;
@@ -1048,19 +1049,19 @@ deleteAttachmentType(id: number) {
     return this.http.delete(`${this.baseUrl}/helpdesk-category/${id}`);
   }
  getAttendanceStatus(companyId: number, regionId: number) {
-  return this.http.get<any>(`${this.baseUrl}/AttendanceStatus/GetAll?companyId=${companyId}&regionId=${regionId}`);
+  return this.http.get<any>(`${this.baseUrl}/MasterData/GetAllAttendanceStatus?companyId=${companyId}&regionId=${regionId}`);
 }
 
 createAttendanceStatus(model: AttendanceStatus) {
-  return this.http.post(`${this.baseUrl}/AttendanceStatus/Create`, model);
+  return this.http.post(`${this.baseUrl}/MasterData/AddAttendanceStatus`, model);
 }
 
 updateAttendanceStatus(model: AttendanceStatus) {
-  return this.http.put(`${this.baseUrl}/AttendanceStatus/Update`, model);
+  return this.http.put(`${this.baseUrl}/MasterData/UpdateAttendanceStatus`, model);
 }
 
 deleteAttendanceStatus(id: number) {
-  return this.http.delete(`${this.baseUrl}/AttendanceStatus/Delete?id=${id}`);
+  return this.http.delete(`${this.baseUrl}/MasterData/DeleteAttendanceStatus/${id}`);
 }
 // ================= LEAVE STATUS ===================
 

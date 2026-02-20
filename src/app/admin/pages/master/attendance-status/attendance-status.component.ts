@@ -13,14 +13,17 @@ import { NgxSpinnerService } from 'ngx-spinner';
   styleUrl: './attendance-status.component.css'
 })
 export class AttendanceStatusComponent {
+isDuplicate = false;
+isSubmitting = false;
 
-  companyId = 1;
-  regionId = 1;
-
-  attendance: AttendanceStatus = this.getEmptyAttendance();
+companyId!: number;
+regionId!: number;
+userId!: number;
+  // attendance: AttendanceStatus = this.getEmptyAttendance();
   attendanceList: AttendanceStatus[] = [];
+  
   attendanceModel: any = {};
-
+attendance!: AttendanceStatus;
   isEditMode = false;
   searchText = '';
   statusFilter: boolean | '' = '';
@@ -28,34 +31,66 @@ export class AttendanceStatusComponent {
   currentPage = 1;
   pageSize = 5;
 
-  sortColumn = 'AttendanceStatusID';
+  sortColumn = 'attendanceStatusId';
   sortDirection: 'asc' | 'desc' = 'desc';
 
   showUploadPopup = false;
 
   constructor(private admin: AdminService, private spinner: NgxSpinnerService) {}
 
-  ngOnInit(): void {
-    this.loadAttendanceStatus();
+ ngOnInit(): void {
+
+  const user = sessionStorage.getItem('currentUser');
+
+  if (user) {
+    const currentUser = JSON.parse(user);
+
+    this.companyId = currentUser.companyId;
+    this.regionId = currentUser.regionId;
+    this.userId = currentUser.userId;
+  } else {
+    Swal.fire('Session Expired', 'Please login again.', 'warning');
+    return;
   }
+this.attendance = this.getEmptyAttendance();
+  this.loadAttendanceStatus();
+}
 
   /** Default new record */
+  // getEmptyAttendance(): AttendanceStatus {
+  //   return {
+  //     AttendanceStatusID: 0,
+  //     AttendanceStatusName: '',
+  //     IsActive: true,
+  //     CompanyID: this.companyId,
+  //     RegionID: this.regionId
+  //   };
+  // }
   getEmptyAttendance(): AttendanceStatus {
-    return {
-      AttendanceStatusID: 0,
-      AttendanceStatusName: '',
-      IsActive: true,
-      CompanyID: this.companyId,
-      RegionID: this.regionId
-    };
-  }
+  return {
+    attendanceStatusId: 0,
+    attendanceStatusName : '',
+    isActive: true,
+    companyId: this.companyId,
+    regionId: this.regionId,
+    createdBy: this.userId,
+    modifiedBy: this.userId,
+  };
+}
+checkDuplicate(): void {
+  const name = this.attendance.attendanceStatusName ?.trim().toLowerCase();
 
+  this.isDuplicate = this.attendanceList.some(x =>
+    x.attendanceStatusName .toLowerCase() === name &&
+    x.attendanceStatusId !== this.attendance.attendanceStatusId
+  );
+}
   /** Load Data */
   loadAttendanceStatus(): void {
     this.spinner.show();
     this.admin.getAttendanceStatus(this.companyId, this.regionId).subscribe({
       next: res => {
-        this.attendanceList = res.data?.data || res;
+        this.attendanceList = res.data;
         this.spinner.hide();
       },
       error: () => {
@@ -66,57 +101,115 @@ export class AttendanceStatusComponent {
   }
 
   /** Submit Create / Update */
-  onSubmit(): void {
-    this.spinner.show();
-    if (this.isEditMode) {
-      this.admin.updateAttendanceStatus(this.attendance).subscribe({
-        next: () => {
-          this.spinner.hide();
-          Swal.fire('Updated', 'Attendance Status updated successfully!', 'success');
-          this.loadAttendanceStatus();
-          this.resetForm();
-        },
-        error: () => {
-          this.spinner.hide();
-          Swal.fire('Error', 'Update failed.', 'error');
-        }
-      });
-    } else {
-      this.admin.createAttendanceStatus(this.attendance).subscribe({
-        next: () => {
-          this.spinner.hide();
-          Swal.fire('Created', 'Attendance Status created successfully!', 'success');
-          this.loadAttendanceStatus();
-          this.resetForm();
-        },
-        error: () => {
-          this.spinner.hide();
-          Swal.fire('Error', 'Create failed.', 'error');
-        }
-      });
-    }
+  // onSubmit(): void {
+  //   this.spinner.show();
+  //   if (this.isEditMode) {
+  //     this.admin.updateAttendanceStatus(this.attendance).subscribe({
+  //       next: () => {
+  //         this.spinner.hide();
+  //         Swal.fire('Updated', 'Attendance Status updated successfully!', 'success');
+  //         this.loadAttendanceStatus();
+  //         this.resetForm();
+  //       },
+  //       error: () => {
+  //         this.spinner.hide();
+  //         Swal.fire('Error', 'Update failed.', 'error');
+  //       }
+  //     });
+  //   } else {
+  //     this.admin.createAttendanceStatus(this.attendance).subscribe({
+  //       next: () => {
+  //         this.spinner.hide();
+  //         Swal.fire('Created', 'Attendance Status created successfully!', 'success');
+  //         this.loadAttendanceStatus();
+  //         this.resetForm();
+  //       },
+  //       error: () => {
+  //         this.spinner.hide();
+  //         Swal.fire('Error', 'Create failed.', 'error');
+  //       }
+  //     });
+  //   }
+  // }
+ onSubmit(form: any): void {
+  if (!this.attendance.attendanceStatusName ?.trim()) {
+    Swal.fire('Validation', 'Status name is required.', 'warning');
+    return;
   }
 
-  /** Edit */
-  editAttendance(item: AttendanceStatus): void {
-    this.attendance = { ...item };
-    this.isEditMode = true;
+  if (this.isDuplicate) {
+    Swal.fire('Duplicate', 'Attendance Status already exists.', 'warning');
+    return;
   }
+
+  this.isSubmitting = true;
+  this.spinner.show();
+this.attendance.companyId = this.companyId;
+this.attendance.regionId = this.regionId;
+this.attendance.createdBy = this.userId;
+
+  this.attendance.attendanceStatusName  =
+    this.attendance.attendanceStatusName .trim();
+
+  const request = this.isEditMode
+    ? this.admin.updateAttendanceStatus(this.attendance)
+    : this.admin.createAttendanceStatus(this.attendance);
+     if (this.isEditMode) {
+    this.attendance.modifiedBy = this.userId;
+  } else {
+    this.attendance.createdBy = this.userId;
+  }
+
+  request.subscribe({
+next: () => {
+  this.spinner.hide();
+  this.isSubmitting = false;
+
+  Swal.fire(
+    this.isEditMode ? 'Updated' : 'Created',
+    `Attendance Status ${this.isEditMode ? 'updated' : 'created'} successfully!`,
+    'success'
+  );
+
+  this.loadAttendanceStatus();
+
+  form.resetForm();      // ✅ VERY IMPORTANT
+  this.resetForm();      // reset model variables
+},
+  error: () => {
+    this.spinner.hide();
+    this.isSubmitting = false;
+    Swal.fire('Error', 'Operation failed.', 'error');
+  }
+});
+}
+
+  /** Edit */
+  // editAttendance(item: AttendanceStatus): void {
+  //   this.attendance = { ...item };
+  //   this.isEditMode = true;
+  // }
+  editAttendance(item: AttendanceStatus): void {
+  this.attendance = { ...item };
+  this.isEditMode = true;
+  this.isDuplicate = false;
+}
 
   /** Delete */
   deleteAttendance(item: AttendanceStatus): void {
     Swal.fire({
-      title: `Delete "${item.AttendanceStatusName}"?`,
+      title: `Delete "${item.attendanceStatusName }"?`,
       showCancelButton: true,
       confirmButtonText: 'Delete'
     }).then(result => {
       if (result.isConfirmed) {
         this.spinner.show();
-        this.admin.deleteAttendanceStatus(item.AttendanceStatusID).subscribe({
+        this.admin.deleteAttendanceStatus(item.attendanceStatusId).subscribe({
           next: () => {
             this.spinner.hide();
             Swal.fire('Deleted', 'Attendance Status deleted successfully.', 'success');
             this.loadAttendanceStatus();
+            this.resetForm();
           },
           error: () => {
             this.spinner.hide();
@@ -131,16 +224,33 @@ export class AttendanceStatusComponent {
   resetForm(): void {
     this.attendance = this.getEmptyAttendance();
     this.isEditMode = false;
+  this.isDuplicate = false;
+  this.isSubmitting = false;
+  
   }
 
   /** Filtered Data */
+  // filteredAttendance(): AttendanceStatus[] {
+  //   return this.attendanceList.filter(c => {
+  //     const matchSearch = c.AttendanceStatusName.toLowerCase().includes(this.searchText.toLowerCase());
+  //     const matchStatus = this.statusFilter === '' || c.IsActive === this.statusFilter;
+  //     return matchSearch && matchStatus;
+  //   });
+  // }
   filteredAttendance(): AttendanceStatus[] {
-    return this.attendanceList.filter(c => {
-      const matchSearch = c.AttendanceStatusName.toLowerCase().includes(this.searchText.toLowerCase());
-      const matchStatus = this.statusFilter === '' || c.IsActive === this.statusFilter;
-      return matchSearch && matchStatus;
-    });
-  }
+  this.currentPage = 1;
+
+  return this.attendanceList.filter(c => {
+    const matchSearch =
+      c.attendanceStatusName .toLowerCase()
+        .includes(this.searchText.toLowerCase());
+
+    const matchStatus =
+      this.statusFilter === '' || c.isActive === this.statusFilter;
+
+    return matchSearch && matchStatus;
+  });
+}
 
   /** Sorting */
   sortTable(column: string) {
@@ -191,8 +301,8 @@ export class AttendanceStatusComponent {
 
   exportExcel() {
     const data = this.attendanceList.map(c => ({
-      'Status Name': c.AttendanceStatusName,
-      'Active': c.IsActive ? 'Yes' : 'No'
+      'Status Name': c.attendanceStatusName ,
+      'Active': c.isActive ? 'Yes' : 'No'
     }));
     const ws = XLSX.utils.json_to_sheet(data);
     const wb = XLSX.utils.book_new();
@@ -202,7 +312,7 @@ export class AttendanceStatusComponent {
 
   exportPDF() {
     const doc = new jsPDF();
-    const data = this.attendanceList.map(c => [c.AttendanceStatusName, c.IsActive ? 'Yes' : 'No']);
+    const data = this.attendanceList.map(c => [c.attendanceStatusName , c.isActive ? 'Yes' : 'No']);
     autoTable(doc, { head: [['Status Name', 'Active']], body: data });
     doc.save('AttendanceStatus.pdf');
   }
