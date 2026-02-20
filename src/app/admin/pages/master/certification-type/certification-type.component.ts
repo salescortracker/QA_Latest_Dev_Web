@@ -37,6 +37,7 @@ export class CertificationTypeComponent {
 
   showUploadPopup = false;
   certificationModel!: UploadModel;
+  userId: number = sessionStorage.getItem('UserId') ? Number(sessionStorage.getItem('UserId')) : 0;
 
   constructor(
     private adminService: AdminService,
@@ -165,19 +166,37 @@ export class CertificationTypeComponent {
     }
   }
   companies: any;
-  regions: any;
+  regions: any[] = [];
+  filteredRegions: any[] = [];
+onCompanyChange(companyId: number): void {
+  this.certification.RegionID = 0;
+
+  if (!companyId) {
+    this.filteredRegions = [];
+    return;
+  }
+
+  this.filteredRegions = this.regions.filter(
+    (r: any) => Number(r.companyID) === Number(companyId)
+  );
+}
+
 loadCompanies(): void {
-    this.adminService.getCompanies().subscribe({
+    debugger;
+    this.adminService.getCompanies(null,this.userId).subscribe({
       next: (res:any) => (this.companies = res),
       error: () => Swal.fire('Error', 'Failed to load companies.', 'error')
     });
   }
 
   loadRegions(): void {
-    this.adminService.getRegions().subscribe({
-      next: (res:any) => (this.regions = res),
-      error: () => Swal.fire('Error', 'Failed to load regions.', 'error')
-    });
+    this.adminService.getRegions(null, this.userId).subscribe({
+    next: (res: any) => {
+      this.regions = res;
+      this.filteredRegions = [];
+    },
+    error: () => Swal.fire('Error', 'Failed to load regions.', 'error')
+  });
   }
   // ================= BULK UPLOAD =================
   openUploadPopup(): void {

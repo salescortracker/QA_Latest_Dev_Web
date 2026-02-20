@@ -77,12 +77,17 @@ actions: PermissionAction[] = ['view', 'create', 'edit', 'delete', 'approve'];
   
 
   constructor(private roleService: AdminService) {}
+  companies: any[] = [];
+  regions: any[] = [];
+  filteredRegions: any[] = [];
+  userId: number = sessionStorage.getItem('UserId') ? Number(sessionStorage.getItem('UserId')) : 0;
 
   ngOnInit(): void {
     this.loadRoles();
+    this.loadCompanies();
+    this.loadRegions();
     this.loadMenuPermissions(); // ✅ Fetch MenuMaster hierarchy dynamically
   }
-// Called when user clicks checkbox
 // called from (change) on checkbox; event gives the clicked checked value
 toggleModulePermissionsWithSelect(menu: MenuItem, event: Event): void {
   const checked = (event.target as HTMLInputElement).checked;
@@ -138,6 +143,31 @@ updateAncestorsSelection(changedMenu: MenuItem): void {
 /**
  * findParent: returns parent MenuItem or null
  */
+onCompanyChange(companyId: number): void {
+  this.role.regionId = 0;
+
+  this.filteredRegions = this.regions.filter(
+    r => Number(r.companyID) === Number(companyId)
+  );
+}
+
+
+  loadCompanies(): void {
+    this.roleService.getCompanies(null, this.userId).subscribe({
+      next: (res: any) => (this.companies = res),
+      error: () => Swal.fire('Error', 'Failed to load companies.', 'error')
+    });
+  }
+
+  loadRegions(): void {
+    this.roleService.getRegions(null, this.userId).subscribe({
+      next: (res: any) => {
+        this.regions = res;
+        this.filteredRegions = []; // initially empty
+      },
+      error: () => Swal.fire('Error', 'Failed to load regions.', 'error')
+    });
+  }
 findParent(list: MenuItem[], child: MenuItem): MenuItem | null {
   for (const item of list) {
     if (item.children && item.children.includes(child)) return item;
@@ -162,24 +192,27 @@ findParent(list: MenuItem[], child: MenuItem): MenuItem | null {
 
   // ---------- CRUD Operations ----------
   loadRoles(): void {
-    this.roleService.getroles({
-      pageNumber: this.pageNumber,
-      pageSize: this.pageSize,
-      sortBy: this.sortBy,
-      isDescending: this.isDescending,
-      searchText: this.searchText,
-      statusFilter: this.statusFilter
-    }).subscribe({
-      next: (response: any) => {
-        this.roles = response.items || response; // handle both array or paginated format
-        this.totalCount = response.totalCount || this.roles.length;
-      },
-      error: () => Swal.fire('Error', 'Failed to load roles.', 'error')
-    });
+  if (!this.userId) {
+    Swal.fire('Error', 'Invalid User Id', 'error');
+    return;
   }
+
+  this.roleService.getroles(this.userId).subscribe({
+    next: (roles: RoleMaster[]) => {
+      this.roles = roles;
+      this.totalCount = roles.length;
+    },
+    error: (err) => {
+      console.error(err);
+      Swal.fire('Error', 'Failed to load roles.', 'error');
+    }
+  });
+}
+
 
 
   onSubmit(): void {
+    this.role.userId = this.userId;
     const request = this.isEditMode
       ? this.roleService.updateRoles(this.role.roleId!, this.role)
       : this.roleService.createRoles(this.role);
@@ -197,6 +230,12 @@ findParent(list: MenuItem[], child: MenuItem): MenuItem | null {
   editRole(role: RoleMaster): void {
     this.role = { ...role };
     this.isEditMode = true;
+    this.filteredRegions = this.regions.filter(
+      r => Number(r.companyID) === Number(this.role.companyId)
+    );
+    if (this.role.roleId) {
+    this.loadMenusWithRolePermissions(this.role.roleId);
+  }
   }
 
   deleteRole(role: RoleMaster): void {
@@ -223,6 +262,7 @@ findParent(list: MenuItem[], child: MenuItem): MenuItem | null {
 
   resetForm(): void {
     this.role = this.getEmptyRole();
+    this.filteredRegions = [];
     this.isEditMode = false;
   }
 

@@ -42,6 +42,20 @@ export class DesignationComponent {
   }
 companies:any;
 regions:any;
+filteredRegions: any[] = [];
+
+onCompanyChange(companyId: number): void {
+  this.designation.regionId = 0;
+
+  if (!companyId) {
+    this.filteredRegions = [];
+    return;
+  }
+
+  this.filteredRegions = this.regions.filter(
+    (r: any) => Number(r.companyID) === Number(companyId)
+  );
+}
   loadCompanies(): void {
     debugger;
     this.adminservice.getCompanies(null,this.userId).subscribe({
@@ -51,10 +65,13 @@ regions:any;
   }
 
   loadRegions(): void {
-    this.adminservice.getRegions(null,this.userId).subscribe({
-      next: (res:any) => (this.regions = res),
-      error: () => Swal.fire('Error', 'Failed to load regions.', 'error')
-    });
+    this.adminservice.getRegions(null, this.userId).subscribe({
+    next: (res: any) => {
+      this.regions = res;
+      this.filteredRegions = [];
+    },
+    error: () => Swal.fire('Error', 'Failed to load regions.', 'error')
+  });
   }
   getCompanyName(companyId: number): string {
     const c = this.companies.find((x:any) => x.companyID === companyId);

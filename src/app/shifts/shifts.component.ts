@@ -65,6 +65,7 @@ export class ShiftsComponent {
     };
   }
   onCompanyChange(): void {
+    debugger;
   if (!this.shift.companyID) {
     this.filteredRegions = [];
     this.shift.regionID = 0;

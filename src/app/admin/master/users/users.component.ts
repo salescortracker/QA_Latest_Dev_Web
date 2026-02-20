@@ -2,6 +2,7 @@ import { Component } from '@angular/core';
 import { AdminService, User, Company, Region, RoleMaster } from '../../servies/admin.service';
 import Swal from 'sweetalert2';
 
+
 @Component({
   selector: 'app-users',
   standalone: false,
@@ -13,10 +14,14 @@ export class UsersComponent {
   companies: Company[] = [];
   regions: Region[] = [];
   roles: RoleMaster[] = [];
+  totalCount: number = 0;
   user: User = this.getEmptyUser();
   isEditMode = false;
 departments: any[] = [];
 userId: number = sessionStorage.getItem('UserId') ? Number(sessionStorage.getItem('UserId')) : 0;
+filteredRegions: any[] = [];
+filteredRoles: RoleMaster[] = [];
+filteredDepartments: any[] = [];
   constructor(private userService: AdminService) {}
 
   ngOnInit(): void {
@@ -73,30 +78,70 @@ onStatusChange(event: Event): void {
   });
   }
 
-  loadCompanies(): void {
-    this.userService.getCompanies(null,this.userId).subscribe({
+  onCompanyChange(companyId: number): void {
+    this.user.regionId = 0;
+    this.user.roleId = 0;
+    this.user.departmentId = 0;
+  
+    this.filteredRegions = companyId
+    ? this.regions.filter(r => Number(r.companyID) === Number(companyId))
+    : [];
+    this.filteredRoles = [];
+    this.filteredDepartments = [];
+  }
+  onRegionChange(regionId: number): void {
+  this.user.roleId = 0;
+  this.user.departmentId = 0;
+
+  if (!this.user.companyId || !regionId) {
+    this.filteredRoles = [];
+    this.filteredDepartments = [];
+    return;
+  }
+  this.filteredRoles = this.roles.filter(
+    r => r.companyId === this.user.companyId && r.regionId === regionId
+  );
+  this.filteredDepartments = this.departments.filter(
+    d => d.companyID === this.user.companyId && d.regionID === regionId
+  );
+}
+
+    loadCompanies(): void {
+      debugger;
+      this.userService.getCompanies(null,this.userId).subscribe({
+        next: (res:any) => (this.companies = res),
+        error: () => Swal.fire('Error', 'Failed to load companies.', 'error')
+      });
+    }
+  
+    loadRegions(): void {
+      this.userService.getRegions(null, this.userId).subscribe({
       next: (res: any) => {
-
-this.companies = res;
-this.generateNextEmployeeCode();
+        this.regions = res;
+        this.filteredRegions = [];
       },
-      error: () => this.showError('Failed to load companies.')
+      error: () => Swal.fire('Error', 'Failed to load regions.', 'error')
     });
-  }
-
-  loadRegions(): void {
-    this.userService.getRegions(null,this.userId).subscribe({
-      next: (res: any) => (this.regions = res),
-      error: () => this.showError('Failed to load regions.')
-    });
-  }
+    }
 
   loadRoles(): void {
-    this.userService.getroles().subscribe({
-      next: (res: any) => (this.roles = res),
-      error: () => this.showError('Failed to load roles.')
-    });
+  if (!this.userId) {
+    Swal.fire('Error', 'Invalid User Id', 'error');
+    return;
   }
+
+  this.userService.getroles(this.userId).subscribe({
+    next: (roles: RoleMaster[]) => {
+      this.roles = roles;
+      this.totalCount = roles.length;
+    },
+    error: (err) => {
+      console.error(err);
+      Swal.fire('Error', 'Failed to load roles.', 'error');
+    }
+  });
+}
+
  // 🔹 Auto-generate Employee Code (Frontend only)
  generateNextEmployeeCode(): void {
   debugger;
@@ -151,6 +196,18 @@ this.generateNextEmployeeCode();
   editUser(u: User): void {
     this.user = { ...u };
     this.isEditMode = true;
+    this.filteredRegions = this.regions.filter(
+    r => Number(r.companyID) === Number(this.user.companyId)
+  );
+  this.filteredRegions = this.regions.filter(
+    r => Number(r.companyID) === Number(this.user.companyId)
+  );
+  if (this.user.regionId) {
+    this.onRegionChange(this.user.regionId);
+  } else {
+    this.filteredRoles = [];
+    this.filteredDepartments = [];
+  }
   }
 
   deleteUser(u: User): void {

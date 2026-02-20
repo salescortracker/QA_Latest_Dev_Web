@@ -21,9 +21,6 @@ relationship: Relationship = this.getEmptyRelationship();
   searchText = '';
   statusFilter: boolean | '' = '';
   showUploadPopup = false;
-
-  
-
   currentPage = 1;
   pageSize = 5;
   sortColumn = 'RelationshipID';
@@ -38,10 +35,7 @@ relationshipModel: any = {
   ) {}
 
   ngOnInit(): void {
-     this.userId = Number(sessionStorage.getItem("UserId"));
-    this.companyId = Number(sessionStorage.getItem("CompanyId"));
-    this.regionId = Number(sessionStorage.getItem("RegionId"));
-
+    this.userId = Number(sessionStorage.getItem("UserId"));
     this.loadRelationships();
     this.loadCompanies();
     this.loadRegions();
@@ -62,33 +56,44 @@ relationshipModel: any = {
   }
   companies: any[] = [];
   regions: any[] = [];
+  filteredRegions: any[] = [];
+
+  onCompanyChange(companyId: number): void {
+    this.relationship.regionId = 0; 
+    if (!companyId) {
+      this.filteredRegions = [];
+      return;
+    }
+    this.filteredRegions = this.regions.filter(
+    r => Number(r.companyID) === Number(companyId)
+  );
+  }
 loadCompanies(): void {
-   this.adminService.getCompanies().subscribe((res: any[]) => {
-    this.companyMap = res.reduce((map, c) => {
-      map[c.companyId] = c.companyName;
-      this.companies = res;
-      return map;
-    }, {} as Record<number, string>);
-  });
+    this.adminService.getCompanies(null, this.userId).subscribe({
+      next: (res: any[]) => this.companies = res,
+      error: () => Swal.fire('Error', 'Failed to load companies.', 'error')
+    });
   }
 
   loadRegions(): void {
     debugger;
-    this.adminService.getRegions().subscribe((res: any[]) => {
-    this.regionMap = res.reduce((map, r) => {
-      debugger;
-      map[r.regionID] = r.regionName;
+  this.adminService.getRegions(null, this.userId).subscribe({
+    next: (res: any[]) => {
       this.regions = res;
-      return map;
-    }, {} as Record<number, string>);
+      if (this.relationship.companyId) {
+        this.filteredRegions = this.regions.filter(r => Number(r.CompanyID) === Number(this.relationship.companyId));
+      } else {
+        this.filteredRegions = [];
+      }
+    },
+    error: () => Swal.fire('Error', 'Failed to load regions.', 'error')
   });
-  }
-  // Load
+}
+
   loadRelationships(): void {
 
-    debugger;
     this.spinner.show();
-   this.adminService.getRelationships(this.userId, this.companyId, this.regionId)
+   this.adminService.getRelationships(this.userId, this.relationship.companyId, this.relationship.regionId)
   .subscribe({
     next: (res: any) => {
 
@@ -147,6 +152,7 @@ loadCompanies(): void {
   editRelationship(r: Relationship): void {
     this.relationship = { ...r };
     this.isEditMode = true;
+    this.onCompanyChange(this.relationship.companyId);
   }
 
   // Delete

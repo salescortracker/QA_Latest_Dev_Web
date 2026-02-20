@@ -405,6 +405,11 @@ export interface RoleMaster {
   createdAt?: Date;
   modifiedBy?: string;
   modifiedAt?: Date;
+  companyId?: number;
+  regionId?: number;
+  userId?: number;
+  companyName?: string;  
+  regionName?: string;
 }
 export interface Department {
   departmentID: number;
@@ -724,9 +729,11 @@ export class AdminService {
   // -------------------------------------------------------------
   // 🔹 Role MASTER OPERATIONS
   // -------------------------------------------------------------
-  getroles(params?: any): Observable<RoleMaster[]> {
-    return this.getAll<RoleMaster>('UserManagement/GetAllRoles', params);
-  }
+  getroles(userId: number): Observable<RoleMaster[]> {
+  return this.http.get<RoleMaster[]>(
+    `${this.baseUrl}/UserManagement/GetAllRoles?userId=${userId}`
+  );
+}
 
   getrolesById(id: number): Observable<RoleMaster> {
     return this.getById<RoleMaster>('UserManagement/GetRoleById', id);
@@ -740,9 +747,9 @@ export class AdminService {
     return this.update<RoleMaster>('UserManagement/UpdateRole', id, model);
   }
 
-  deleteRoles(id: number): Observable<void> {
-    return this.delete('UserManagement/DeleteRole', id);
-  }
+  deleteRoles(id: number): Observable<any> {
+  return this.http.post(`${this.baseUrl}/UserManagement/DeleteRole/${id}`, {}); 
+}
 
 
 
@@ -1472,7 +1479,6 @@ downloadDDCopy(fileName: string): Observable<Blob> {
   }
 
   addShift(model: ShiftMasterDto): Observable<any> {
-    debugger;
     return this.http.post(`${this.baseUrl}/Attendance/AddShift`, model);
   }
 
@@ -1481,7 +1487,6 @@ downloadDDCopy(fileName: string): Observable<Blob> {
   }
 
   deleteShift(shiftId: number): Observable<any> {
-    debugger;
     return this.http.delete(`${this.baseUrl}/Attendance/DeleteShift/${shiftId}`);
   }
 
@@ -1511,7 +1516,6 @@ downloadDDCopy(fileName: string): Observable<Blob> {
   }
 
   allocateShift(model: ShiftAllocationDto): Observable<any> {
-    debugger;
     return this.http.post(`${this.baseUrl}/employee/AddAllocateShift`, model);
   }
 
