@@ -64,6 +64,8 @@ import { HttpClientModule } from '@angular/common/http';
 import { CommonUploadComponent } from './shared/common-upload/common-upload.component';
 import { SubmenuComponent } from './layout/submenu/submenu.component';
 import { WelcomedemoComponent } from './pages/welcomedemo/welcomedemo.component';
+import { HolidayListComponent } from './pages/master/holiday-list/holiday-list.component';
+import { WeekOffComponent } from './pages/master/week-off/week-off.component';
 
 @NgModule({
   declarations: [
@@ -127,7 +129,9 @@ import { WelcomedemoComponent } from './pages/welcomedemo/welcomedemo.component'
     MenusComponent,
     CommonUploadComponent,
     SubmenuComponent,
-    WelcomedemoComponent
+    WelcomedemoComponent,
+    HolidayListComponent,
+    WeekOffComponent
  
   
 

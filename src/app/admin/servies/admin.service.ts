@@ -603,6 +603,45 @@ export class AdminService {
     return this.http.delete<void>(`${this.baseUrl}/${endpoint}/${id}`);
   }
 
+
+
+
+getHolidayList(userId: number) {
+  return this.http.get(`${this.baseUrl}/MasterData/holiday-list?userId=${userId}`);
+}
+
+createHoliday(data: any) {
+  return this.http.post(`${this.baseUrl}/MasterData/CreateHoliday`, data);
+}
+
+updateHoliday(data: any) {
+  return this.http.post(`${this.baseUrl}/MasterData/UpdateHoliday`, data);
+}
+
+deleteHoliday(id: number) {
+  return this.http.post(`${this.baseUrl}/MasterData/DeleteHoliday?id=${id}`, {});
+}
+
+
+
+
+
+getWeekoffList(userId: number) {
+  return this.http.get(`${this.baseUrl}/MasterData/weekoff-list?userId=${userId}`);
+}
+
+createWeekoff(data: any) {
+  return this.http.post(`${this.baseUrl}/MasterData/CreateWeekoff`, data);
+}
+
+updateWeekoff(data: any) {
+  return this.http.post(`${this.baseUrl}/MasterData/UpdateWeekoff`, data);
+}
+
+deleteWeekoff(id: number) {
+  return this.http.post(`${this.baseUrl}/MasterData/DeleteWeekoff?id=${id}`, {});
+}
+
   // -------------------------------------------------------------
   // 🔹 COMPANY OPERATIONS
   // -------------------------------------------------------------

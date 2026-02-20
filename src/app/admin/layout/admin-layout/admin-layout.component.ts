@@ -46,6 +46,8 @@ export class AdminLayoutComponent {
        { title: 'Leave Status', route: '/admin/leave-status' },
       { title: 'Attendance Status', route: '/admin/attendance-status' },
       { title: 'Bank-Details', route: '/admin/bank-details' },
+      { title: 'Holiday List', route: '/admin/holiday-list' },
+      { title: 'week-off', route: '/admin/week-off' },
     ],
     'Configuration': [
       { title: 'Approval Workflows', route: '/admin/approval-workflow' },
