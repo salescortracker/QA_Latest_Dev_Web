@@ -1,92 +1,124 @@
-<div class="card shadow-sm"> 
-  <div class="container-fluid p-4 news-management">
+<div class="card shadow-sm p-4">
 
-<div class="dashboard-header">
-  <h2 class="dashboard-title">Manage Policies</h2>
-</div>
+  <h3 class="mb-3">HR Policy Management</h3>
+  <hr />
 
-
-<hr/>
-<div class="p-4">
-
-  <!-- Add/Edit Form -->
-  <div class="card mb-4">
-    <div class="card-body">
-      <form (ngSubmit)="onSubmit()" #policyForm="ngForm">
-        <div class="row g-3">
-          <div class="col-md-4">
-            <label class="form-label">Title <span class="text-danger">*</span></label>
-            <input type="text" class="form-control" [(ngModel)]="policy.Title" name="Title" required>
-          </div>
-          <div class="col-md-4">
-            <label class="form-label">Category <span class="text-danger">*</span></label>
-            <select class="form-select" [(ngModel)]="policy.Category" name="Category" required>
-              <option value="">Select Category</option>
-              <option *ngFor="let c of categories" [value]="c">{{ c }}</option>
-            </select>
-          </div>
-          <div class="col-md-4">
-            <label class="form-label">Effective Date <span class="text-danger">*</span></label>
-            <input type="date" class="form-control" [(ngModel)]="policy.EffectiveDate" name="EffectiveDate" required>
-          </div>
-          <div class="col-md-6">
-            <label class="form-label">Upload Document</label>
-            <input type="file" class="form-control" (change)="onFileChange($event)">
-          </div>
-          <div class="col-md-6">
-            <label class="form-label">Description</label>
-            <textarea class="form-control" [(ngModel)]="policy.Description" name="Description"></textarea>
-          </div>
-          <div class="col-12 text-end">
-            <button class="btn btn-success me-2" type="submit">{{ isEditMode ? 'Update' : 'Add Policy' }}</button>
-            <button class="btn btn-secondary" type="button" (click)="resetForm()">Reset</button>
-          </div>
-        </div>
-      </form>
-    </div>
+  <!-- VIEW TOGGLE -->
+  <div class="mb-3">
+    <button class="btn btn-outline-success me-2"
+            [class.active]="showStatus === 'published'"
+            (click)="toggleView('published')">
+      Published
+    </button>
+    <button class="btn btn-outline-danger"
+            [class.active]="showStatus === 'archived'"
+            (click)="toggleView('archived')">
+      Archived
+    </button>
   </div>
 
-  <!-- Policies List -->
-  <div class="card">
-    <div class="card-body">
-      <table class="table table-bordered table-hover">
-        <thead class="table-light">
-          <tr>
-            <th>S.No</th>
-            <th>Title</th>
-            <th>Category</th>
-            <th>Effective Date</th>
-            <th>Description</th>
-            <th>Attachment</th>
-            <th class="text-center">Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr *ngFor="let p of policies; let i = index">
-            <td>{{ i + 1 }}</td>
-            <td>{{ p.Title }}</td>
-            <td>{{ p.Category }}</td>
-            <td>{{ p.EffectiveDate | date:'dd-MMM-yyyy' }}</td>
-            <td>{{ p.Description }}</td>
-            <td>
-              <a *ngIf="p.FileName" href="{{ p.FileUrl }}" target="_blank">{{ p.FileName }}</a>
-            </td>
-            <td class="text-center">
-              <button class="btn btn-sm btn-outline-primary me-2" (click)="editPolicy(p)">
-                <i class="fa-solid fa-pen-to-square"></i>
-              </button>
-              <button class="btn btn-sm btn-outline-danger" (click)="deletePolicy(p)">
-                <i class="fa-solid fa-trash"></i>
-              </button>
-            </td>
-          </tr>
-          <tr *ngIf="policies.length === 0">
-            <td colspan="7" class="text-center text-muted">No policies added yet</td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-  </div>
+  <!-- FORM -->
+  <form (ngSubmit)="onSubmit()">
 
-</div>
+    <div class="row g-3">
+
+      <!-- Title -->
+      <div class="col-md-6">
+        <label class="form-label">Title *</label>
+        <input type="text" class="form-control" [(ngModel)]="policy.title" name="title" required />
+      </div>
+
+      <!-- Category Dropdown -->
+      <div class="col-md-6">
+        <label class="form-label">Category *</label>
+        <select class="form-select" [(ngModel)]="policy.categoryId" name="categoryId" required>
+          <option [ngValue]="null" disabled>Select</option>
+          <option *ngFor="let c of categories" [ngValue]="c.PolicyCategoryID">
+            {{ c.PolicyCategoryName }}
+          </option>
+        </select>
+      </div>
+
+      <!-- Effective Date -->
+      <div class="col-md-6">
+        <label class="form-label">Effective Date *</label>
+        <input type="date" class="form-control" [(ngModel)]="policy.effectiveDate" name="effectiveDate" required />
+      </div>
+
+      <!-- File Upload -->
+      <div class="col-md-6">
+        <label class="form-label">Upload File</label>
+        <input type="file" class="form-control" (change)="onFileChange($event)" />
+      </div>
+
+      <!-- Description -->
+      <div class="col-md-12">
+        <label class="form-label">Description</label>
+        <textarea class="form-control" [(ngModel)]="policy.description" name="description"></textarea>
+      </div>
+
+    </div>
+
+    <!-- Buttons -->
+    <div class="text-end mt-3">
+      <button class="btn btn-success me-2" type="submit">
+        {{ isEditMode ? 'Update Policy' : 'Add Policy' }}
+      </button>
+      <button class="btn btn-secondary" type="button" (click)="resetForm()">Reset</button>
+    </div>
+
+  </form>
+
+  <hr />
+
+  <!-- POLICIES LIST -->
+  <h4>Policies List</h4>
+
+  <table class="table table-bordered mt-3">
+    <thead class="table-light">
+      <tr>
+        <th>#</th>
+        <th>Title</th>
+        <th>Category</th>
+        <th>Effective Date</th>
+        <th>Description</th>
+        <th>File</th>
+        <th>Status</th>
+        <th>Version</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+
+    <tbody>
+      <tr *ngFor="let p of filteredPolicies; let i = index">
+        <td>{{ i + 1 }}</td>
+        <td>{{ p.title }}</td>
+        <td>{{ p.categoryName }}</td>
+        <td>{{ p.effectiveDate | date:'dd-MMM-yyyy' }}</td>
+        <td>{{ p.description || '—' }}</td>
+        <td>
+          <a *ngIf="p.filePath" [href]="p.filePath" target="_blank">{{ p.fileName }}</a>
+        </td>
+        <td>
+          <span [class]="p.status === 'published' ? 'text-success' : 'text-danger'">
+            ● {{ p.status | titlecase }}
+          </span>
+        </td>
+        <td>v{{ p.version }}</td>
+        <td class="text-center">
+          <button class="btn btn-sm btn-outline-primary me-1" (click)="editPolicy(p)">
+            <i class="fa-solid fa-pen-to-square"></i> Edit
+          </button>
+          <button class="btn btn-sm btn-outline-danger" (click)="deletePolicy(p.policyId)">
+            <i class="fa-solid fa-trash"></i> Delete
+          </button>
+        </td>
+      </tr>
+
+      <tr *ngIf="filteredPolicies.length === 0">
+        <td colspan="9" class="text-center text-muted">No records found</td>
+      </tr>
+    </tbody>
+  </table>
+
 </div>

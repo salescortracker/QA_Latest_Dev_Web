@@ -1,76 +1,98 @@
 <div class="card shadow-sm">
-  <div class="container-fluid p-4 policy-category-management">
+  <div class="container-fluid p-4">
 
     <!-- Header -->
     <div class="d-flex justify-content-between align-items-center mb-4">
       <h4 class="fw-semibold mb-0">
-        <i class="fa-solid fa-folder-open me-2 text-danger"></i>
-        Policy Category Management
+        <i class="fa-solid fa-list-check me-2 text-primary"></i>
+        Policy Category
       </h4>
-
-      <div class="d-flex gap-2">
-        <!-- Export Dropdown -->
-        <div class="dropdown">
-          <button class="btn btn-outline-dark dropdown-toggle" type="button" data-bs-toggle="dropdown">
-            <i class="fa-solid fa-download me-2"></i> Export
-          </button>
-          <ul class="dropdown-menu dropdown-menu-end animate__animated animate__fadeIn">
-            <li><a class="dropdown-item" (click)="exportExcel()">Download Excel</a></li>
-            <li><a class="dropdown-item" (click)="exportPDF()">Download PDF</a></li>
-          </ul>
-        </div>
-
-        <!-- Bulk Upload -->
-        <button class="btn btn-danger" (click)="openUploadPopup()">
-          <i class="fa-solid fa-upload me-2"></i> Bulk Upload
-        </button>
-      </div>
     </div>
 
-    <hr class="mb-4" />
+    <hr />
 
-    <!-- Policy Form -->
+    <!-- FORM -->
     <div class="card shadow-sm mb-4">
       <div class="card-body">
-        <form (ngSubmit)="onSubmit()" #policyForm="ngForm" novalidate>
+        <form #pcForm="ngForm" (ngSubmit)="onSubmit()" novalidate>
+
           <div class="row g-3">
 
             <!-- Policy Category Name -->
-            <div class="col-md-6">
-              <label class="form-label fw-semibold">Policy Category</label>
-              <input
-                type="text"
-                class="form-control"
-                name="PolicyCategoryName"
-                [(ngModel)]="policy.PolicyCategoryName"
-                placeholder="Enter Policy Category"
-                required
-              />
+            <div class="col-md-4">
+              <label class="form-label fw-semibold">Category Name *</label>
+             <input type="text" class="form-control" name="PolicyCategoryName"
+       [(ngModel)]="policy.PolicyCategoryName" required placeholder="Enter Policy Category Name" />
+
             </div>
 
-            <!-- IsActive Switch -->
-            <div class="col-md-6 d-flex align-items-center mt-3">
+            <!-- Description -->
+            <div class="col-md-4">
+              <label class="form-label fw-semibold">Description</label>
+              <input type="text" class="form-control" name="description" [(ngModel)]="policy.description"
+                placeholder="Enter Description" />
+            </div>
+
+            <!-- Company -->
+            <div class="col-md-4">
+              <label class="form-label fw-semibold">Company *</label>
+              <select class="form-select" name="companyId" [(ngModel)]="companyId" (change)="onCompanyChange()"
+                required>
+                <option value="">-- Select Company --</option>
+                <option *ngFor="let c of companies" [value]="c.companyId">
+                  {{ c.companyName }}
+                </option>
+              </select>
+            </div>
+
+            <!-- Region -->
+            <div class="col-md-4">
+              <label class="form-label fw-semibold">Region *</label>
+              <select class="form-select" name="regionId" [(ngModel)]="regionId" (change)="onRegionChange()" required>
+                <option value="">-- Select Region --</option>
+                <option *ngFor="let r of regions" [value]="r.regionID">
+                  {{ r.regionName }}
+                </option>
+              </select>
+            </div>
+
+            <!-- NEW: ATTENDANCE CATEGORY DROPDOWN -->
+            <div class="col-md-4">
+              <label class="form-label fw-semibold">Attendance Category *</label>
+
+             <select class="form-select" name="attendanceCategoryId"
+        [(ngModel)]="policy.attendanceCategoryId"
+        [disabled]="!regionId"
+        required>
+  <option value="">-- Select Attendance Category --</option>
+  <option *ngFor="let ac of attendanceCategories" [value]="ac.categoryId">
+    {{ ac.categoryName }}
+  </option>
+</select>
+
+
+              <!-- Validation Message -->
+              <small class="text-danger" *ngIf="pcForm.submitted && !policy.attendanceCategoryId">
+                Attendance category is required.
+              </small>
+            </div>
+
+            <!-- Active Switch -->
+            <div class="col-md-2 d-flex align-items-center mt-4">
+              <label class="me-2 fw-semibold">Active</label>
               <div class="form-check form-switch">
-                <input
-                  class="form-check-input"
-                  type="checkbox"
-                  id="isActiveSwitch"
-                  name="IsActive"
-                  [(ngModel)]="policy.IsActive"
-                />
-                <label class="form-check-label ms-2" for="isActiveSwitch">
-                  {{ policy.IsActive ? 'Active' : 'Inactive' }}
-                </label>
+                <input type="checkbox" class="form-check-input" name="isActive" [(ngModel)]="policy.isActive" />
               </div>
             </div>
 
-            <!-- Submit -->
-            <div class="col-md-12 d-flex justify-content-start mt-3">
-              <button type="submit" class="btn btn-dark px-4" [disabled]="!policyForm.valid">
+            <!-- Buttons -->
+            <div class="col-md-10 mt-4 text-end">
+              <button class="btn btn-success me-2" type="submit" [disabled]="!pcForm.valid">
                 <i class="fa-solid fa-save me-2"></i>
-                {{ isEditMode ? 'Update Policy' : 'Save Policy' }}
+                {{ isEditMode ? "Update" : "Save" }}
               </button>
-              <button type="button" class="btn btn-secondary ms-2" (click)="resetForm()">
+
+              <button class="btn btn-secondary" type="button" (click)="resetForm()">
                 <i class="fa-solid fa-rotate-left me-2"></i> Reset
               </button>
             </div>
@@ -80,72 +102,65 @@
       </div>
     </div>
 
-    <!-- Table Section -->
+    <!-- TABLE -->
     <div class="card shadow-sm">
       <div class="card-body">
 
-        <!-- Search & Filters -->
-        <div class="row mb-3 g-3 align-items-end">
-          <div class="col-md-4">
-            <input type="text" class="form-control" placeholder="Search Policy Category" [(ngModel)]="searchText" />
-          </div>
+        <!-- Search -->
+        <div class="mb-3 d-flex justify-content-end">
+          <input class="form-control w-25" placeholder="Search Category" [(ngModel)]="searchText" />
         </div>
 
-        <!-- Table -->
-        <div class="table-responsive">
-          <table class="table table-bordered table-hover align-middle">
-            <thead class="table-light">
-              <tr>
-                <th>#</th>
-                <th>Policy Category</th>
-                <th>Status</th>
-                <th class="text-center">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr *ngFor="let p of paginatedPolicies(); let i = index">
-                <td>{{ (currentPage - 1) * pageSize + i + 1 }}</td>
-                <td>{{ p.PolicyCategoryName }}</td>
-                <td>
-                  <span class="badge" [ngClass]="p.IsActive ? 'bg-success' : 'bg-secondary'">
-                    {{ p.IsActive ? 'Active' : 'Inactive' }}
-                  </span>
-                </td>
-                <td class="text-center">
-                  <button class="btn btn-sm btn-outline-primary me-2" (click)="editPolicy(p)">
-                    <i class="fa-solid fa-pen-to-square"></i>
-                  </button>
-                  <button class="btn btn-sm btn-outline-danger" (click)="deletePolicy(p)">
-                    <i class="fa-solid fa-trash"></i>
-                  </button>
-                </td>
-              </tr>
-              <tr *ngIf="filteredPolicies().length === 0">
-                <td colspan="4" class="text-center text-muted">No records found</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
+        <table class="table table-bordered table-hover align-middle">
+          <thead class="table-light">
+            <tr>
+              <th style="width: 80px;">S.No</th>
+              <th>Name</th>
+              <th>Description</th>
+              <th>Company</th>
+              <th>Region</th>
+              <th class="text-center">Active</th>
+              <th class="text-center">Actions</th>
+            </tr>
+          </thead>
 
-        <!-- Pagination -->
-        <nav *ngIf="totalPages() > 1" class="d-flex justify-content-end mt-3">
-          <ul class="pagination pagination-sm mb-0">
-            <li class="page-item" [class.disabled]="currentPage === 1">
-              <a class="page-link" (click)="changePage(currentPage - 1)">Previous</a>
-            </li>
-            <li class="page-item" *ngFor="let page of pagesArray()" [class.active]="currentPage === page">
-              <a class="page-link" (click)="changePage(page)">{{ page }}</a>
-            </li>
-            <li class="page-item" [class.disabled]="currentPage === totalPages()">
-              <a class="page-link" (click)="changePage(currentPage + 1)">Next</a>
-            </li>
-          </ul>
-        </nav>
+          <tbody>
+
+            <tr *ngFor="let p of filteredList(); let i = index">
+              <td>{{ i + 1 }}</td>
+              <td>{{ p.PolicyCategoryName }}</td>
+              <td>{{ p.description || '—' }}</td>
+              <td>{{ companyMap[p.companyId] }}</td>
+              <td>{{ regionMap[p.regionId] }}</td>
+
+              <td class="text-center">
+                <i class="fa-solid"
+                  [ngClass]="p.isActive ? 'fa-circle-check text-success' : 'fa-circle-xmark text-danger'">
+                </i>
+              </td>
+
+              <td class="text-center">
+                <button class="btn btn-sm btn-outline-primary me-2" (click)="edit(p)">
+                  <i class="fa-solid fa-pen-to-square"></i>
+                </button>
+
+                <button class="btn btn-sm btn-outline-danger" (click)="delete(p)">
+                  <i class="fa-solid fa-trash"></i>
+                </button>
+              </td>
+            </tr>
+
+            <tr *ngIf="filteredList().length === 0">
+              <td colspan="7" class="text-center text-muted">
+                No records found
+              </td>
+            </tr>
+
+          </tbody>
+        </table>
+
       </div>
     </div>
 
   </div>
 </div>
-
-<!-- Upload Popup -->
-

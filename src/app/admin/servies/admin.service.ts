@@ -191,11 +191,14 @@ export interface AssetStatus {
   RegionID: number;
 }
 export interface PolicyCategory {
-  PolicyCategoryID?: number;
-  CompanyID: number;
-  RegionID: number;
-  PolicyCategoryName: string;
-  IsActive: boolean;
+  PolicyCategoryID: number;          // match DB exactly
+  companyId: number;
+  regionId: number;
+  PolicyCategoryName: string;        // exact casing
+  description?: string;
+  userId?: number;
+  isActive: boolean;
+  attendanceCategoryId?: number;     // added for attendance category dropdown
 }
 export interface AttachmentType {
   AttachmentTypeID?: number;
@@ -468,6 +471,21 @@ export interface ShiftAllocationDto {
     updatedBy?: number | null;  // ✅ needed for edit
 
   } 
+export interface CompanyPolicy {
+  policyId?: number;
+  companyId: number;
+  regionId: number;
+  title: string;
+  categoryId: number | null;
+  categoryName?: string;            // used for displaying in table and dropdown
+  effectiveDate: Date | string;
+  description?: string;
+  file?: File | null;
+  fileName?: string;
+  filePath?: string;
+  status?: 'published' | 'archived';
+  version?: number;
+}
   //------------------- Manager Dropdown Interface ------------------ //
   export interface ManagerDropdown {
     userId: number;
@@ -1722,7 +1740,27 @@ bulkUploadCertificationTypes(data: CertificationType[]): Observable<any> {
   private getFileName(path: string): string {
   return path.split('/').pop() || 'download';
 }
+//company policy
 
+ // --------- POLICY CRUD ----------
+  getPolicies(companyId: number, regionId: number): Observable<CompanyPolicy[]> {
+    return this.http.get<CompanyPolicy[]>(`${this.baseUrl}/GetAllPolicies?companyId=${companyId}&regionId=${regionId}`);
+  }
 
+  createPolicy(formData: FormData, companyId: number, regionId: number): Observable<CompanyPolicy> {
+    return this.http.post<CompanyPolicy>(`${this.baseUrl}/CreatePolicy`, formData);
+  }
 
+  updatePolicy(formData: FormData, companyId: number, regionId: number): Observable<CompanyPolicy> {
+    return this.http.put<CompanyPolicy>(`${this.baseUrl}/UpdatePolicy`, formData);
+  }
+
+  deletePolicy(policyId: number, companyId: number, regionId: number): Observable<any> {
+    return this.http.delete(`${this.baseUrl}/DeletePolicy/${policyId}`);
+  }
+
+  // --------- POLICY CATEGORY ----------
+  getAttendancePolicyCategories(companyId: number, regionId: number): Observable<PolicyCategory[]> {
+    return this.http.get<PolicyCategory[]>(`${this.baseUrl}/GetCategories?companyId=${companyId}&regionId=${regionId}`);
+  }
 }

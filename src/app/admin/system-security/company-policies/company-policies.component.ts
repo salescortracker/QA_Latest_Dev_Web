@@ -1,60 +1,151 @@
-import { Component } from '@angular/core';
-interface Policy {
-  Title: string;
-  Category: string;
-  EffectiveDate: Date;
-  Description?: string;
-  FileName?: string;
-  FileUrl?: string;
-}
+import { Component, OnInit } from '@angular/core';
+import { AdminService, CompanyPolicy, PolicyCategory } from '../../servies/admin.service';
+
 @Component({
   selector: 'app-company-policies',
   standalone: false,
   templateUrl: './company-policies.component.html',
-  styleUrl: './company-policies.component.css'
+  styleUrls: ['./company-policies.component.css']
 })
-export class CompanyPoliciesComponent {
-categories: string[] = ['HR Policy', 'Compliance', 'IT Security', 'Finance', 'General'];
-  policies: Policy[] = [];
-  policy: Policy = this.resetPolicy();
-  isEditMode: boolean = false;
-  editIndex: number | null = null;
+export class CompanyPoliciesComponent implements OnInit {
 
-  resetPolicy(): Policy {
-    return { Title: '', Category: '', EffectiveDate: new Date(), Description: '' };
+  policies: CompanyPolicy[] = [];
+  filteredPolicies: CompanyPolicy[] = [];
+  categories: PolicyCategory[] = [];
+  policy: CompanyPolicy;
+  isEditMode = false;
+  showStatus: 'published' | 'archived' = 'published';
+
+  userId!: number;
+  companyId!: number;
+  regionId!: number;
+
+  constructor(private adminService: AdminService) {
+    this.policy = this.newPolicy();
   }
 
+  ngOnInit(): void {
+    this.userId = Number(sessionStorage.getItem("UserId"));
+    this.companyId = Number(sessionStorage.getItem("CompanyId"));
+    this.regionId = Number(sessionStorage.getItem("RegionId"));
+
+    this.loadCategories();
+    this.loadPolicies();
+  }
+
+  // New empty policy
+  newPolicy(): CompanyPolicy {
+    return {
+      policyId: 0,
+      companyId: this.companyId,
+      regionId: this.regionId,
+      title: '',
+      categoryId: null,
+      effectiveDate: new Date(),
+      description: '',
+      file: null,
+      status: 'published',
+      version: 1
+    };
+  }
+
+  // Load categories for dropdown
+  loadCategories() {
+    this.adminService.getAttendancePolicyCategories(this.companyId, this.regionId)
+      .subscribe({
+        next: res => this.categories = res || [],
+        error: err => console.error("Category Load Error:", err)
+      });
+  }
+
+  // Load all policies
+  loadPolicies() {
+    this.adminService.getPolicies(this.companyId, this.regionId)
+      .subscribe({
+        next: res => {
+          // map categoryName properly for table display
+          this.policies = (res || []).map(p => ({
+            ...p,
+            categoryName: this.categories.find(c => c.PolicyCategoryID === p.categoryId)?.PolicyCategoryName,
+            status: 'published',
+            version: 1
+          }));
+          this.applyFilter();
+        },
+        error: err => console.error("Policy Load Error:", err)
+      });
+  }
+
+  // Filter by status
+  toggleView(status: 'published' | 'archived') {
+    this.showStatus = status;
+    this.applyFilter();
+  }
+
+  applyFilter() {
+    this.filteredPolicies = this.policies.filter(p => p.status === this.showStatus);
+  }
+
+  // Submit (Create / Update)
   onSubmit() {
-    if (this.isEditMode && this.editIndex !== null) {
-      this.policies[this.editIndex] = { ...this.policy };
+    if (!this.policy.categoryId) { alert('Please select a category'); return; }
+
+    const effectiveDate = typeof this.policy.effectiveDate === 'string'
+      ? new Date(this.policy.effectiveDate)
+      : this.policy.effectiveDate;
+
+    const fd = new FormData();
+    fd.append("PolicyId", String(this.policy.policyId || 0));
+    fd.append("CompanyId", String(this.companyId));
+    fd.append("RegionId", String(this.regionId));
+    fd.append("Title", this.policy.title);
+    fd.append("CategoryId", String(this.policy.categoryId));
+    fd.append("EffectiveDate", effectiveDate.toISOString());
+    fd.append("Description", this.policy.description || "");
+    if (this.policy.file) fd.append("File", this.policy.file);
+
+    if (this.isEditMode) {
+      this.adminService.updatePolicy(fd, this.companyId, this.regionId).subscribe({
+        next: () => { this.loadPolicies(); this.resetForm(); },
+        error: err => alert("Update failed: " + err.message)
+      });
     } else {
-      this.policies.push({ ...this.policy });
+      this.adminService.createPolicy(fd, this.companyId, this.regionId).subscribe({
+        next: () => { this.loadPolicies(); this.resetForm(); },
+        error: err => alert("Create failed: " + err.message)
+      });
     }
-    this.resetForm();
   }
 
-  editPolicy(p: Policy) {
+  // Edit
+  editPolicy(p: CompanyPolicy) {
     this.isEditMode = true;
-    this.editIndex = this.policies.indexOf(p);
-    this.policy = { ...p };
+    this.policy = { ...p, file: null };
   }
 
-  deletePolicy(p: Policy) {
-    const idx = this.policies.indexOf(p);
-    if (idx > -1) this.policies.splice(idx, 1);
+  // Delete
+  deletePolicy(id?: number) {
+    if (!id) return;
+    if (!confirm("Are you sure you want to delete this policy?")) return;
+
+    this.adminService.deletePolicy(id, this.companyId, this.regionId).subscribe({
+      next: () => this.loadPolicies(),
+      error: err => alert("Delete failed: " + err.message)
+    });
   }
 
-  resetForm() {
-    this.policy = this.resetPolicy();
-    this.isEditMode = false;
-    this.editIndex = null;
-  }
-
+  // File change
   onFileChange(event: any) {
     const file = event.target.files[0];
     if (file) {
-      this.policy.FileName = file.name;
-      this.policy.FileUrl = URL.createObjectURL(file);
+      this.policy.file = file;
+      this.policy.fileName = file.name;
     }
+  }
+
+  // Reset form
+  resetForm() {
+    this.policy = this.newPolicy();
+    this.isEditMode = false;
   }
 }
