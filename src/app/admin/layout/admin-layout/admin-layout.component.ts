@@ -1,6 +1,5 @@
-import { Component } from '@angular/core';
 import { Router } from '@angular/router';
-
+import { Component } from '@angular/core';
 export interface Submenu {
   title: string;
   route: string;
@@ -12,6 +11,7 @@ export interface Submenu {
   templateUrl: './admin-layout.component.html',
   styleUrl: './admin-layout.component.css'
 })
+
 export class AdminLayoutComponent {
   isSidebarCollapsed = false;
   selectedSubmenus: Submenu[] = [];
@@ -45,6 +45,8 @@ export class AdminLayoutComponent {
       { title: 'Leave Type', route: '/admin/leave-type' },
        { title: 'Leave Status', route: '/admin/leave-status' },
       { title: 'Attendance Status', route: '/admin/attendance-status' },
+      {title: 'Policy Category', route: '/admin/policy-category'},
+      
     ],
     'Configuration': [
       { title: 'Approval Workflows', route: '/admin/approval-workflow' },
