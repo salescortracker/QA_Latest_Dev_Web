@@ -93,10 +93,16 @@ import { ScreeningComponent } from './features/recruitment/screening/screening.c
 import { EmployeeResignationHrApprovalComponent } from './features/employee-profile/employee-resignation/employee-resignation-hr-approval/employee-resignation-hr-approval.component';
 import { EmployeeResignationManagerApprovalComponent } from './features/employee-profile/employee-resignation/employee-resignation-manager-approval/employee-resignation-manager-approval.component';
 import { EmployeeResignationDetailsComponent } from './features/employee-profile/employee-resignation/employee-resignation-details/employee-resignation-details.component';
+import { HTTP_INTERCEPTORS } from '@angular/common/http';
+import { SpinnerComponent } from './spinner/spinner.component';
+import { SpinnerInterceptor } from './shared/spinner.interceptor';
+
+
 @NgModule({
   declarations: [
     AppComponent,
     LoginComponent,
+
     LayoutComponent,
     HeaderComponent,
     SidebarComponent,
@@ -179,13 +185,14 @@ import { EmployeeResignationDetailsComponent } from './features/employee-profile
     ScreeningComponent,
     EmployeeResignationHrApprovalComponent,
     EmployeeResignationManagerApprovalComponent,
-    EmployeeResignationDetailsComponent
+    EmployeeResignationDetailsComponent,
+    
     
   ],
   imports: [
     BrowserModule, ReactiveFormsModule,
     AppRoutingModule, FormsModule, HttpClientModule, NgxSpinnerModule,
-    StrongPasswordDirective
+    StrongPasswordDirective, SpinnerComponent
 ],
   providers: [
     provideClientHydration(withEventReplay()),
@@ -193,8 +200,9 @@ import { EmployeeResignationDetailsComponent } from './features/employee-profile
      { provide: MAT_DATE_FORMATS, useValue: {
     parse: { dateInput: 'DD/MM/YYYY' },
     display: { dateInput: 'DD/MM/YYYY' }
-  }}
-
+  }},
+  { provide: HTTP_INTERCEPTORS, useClass: SpinnerInterceptor, multi: true }
+  
   ],
   bootstrap: [AppComponent]
 })
