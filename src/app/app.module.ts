@@ -98,6 +98,9 @@ import { SpinnerComponent } from './spinner/spinner.component';
 import { SpinnerInterceptor } from './shared/spinner.interceptor';
 
 
+import { RaiseTicketComponent } from './features/helpdesk/raise-ticket/raise-ticket.component';
+import { MyTicketsComponent } from './features/helpdesk/my-tickets/my-tickets.component';
+import { ApproveTicketsComponent } from './features/helpdesk/approve-tickets/approve-tickets.component';
 @NgModule({
   declarations: [
     AppComponent,
@@ -187,6 +190,9 @@ import { SpinnerInterceptor } from './shared/spinner.interceptor';
     EmployeeResignationManagerApprovalComponent,
     EmployeeResignationDetailsComponent,
     
+    RaiseTicketComponent,
+    MyTicketsComponent,
+    ApproveTicketsComponent
     
   ],
   imports: [
