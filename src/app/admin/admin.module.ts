@@ -60,7 +60,6 @@ import { CompanyComponent } from './master/company/company.component';
 import { RegionComponent } from './master/region/region.component';
 import { UsersComponent } from './master/users/users.component';
 import { MenusComponent } from './master/menus/menus.component';
-import { HttpClientModule } from '@angular/common/http';
 import { CommonUploadComponent } from './shared/common-upload/common-upload.component';
 import { SubmenuComponent } from './layout/submenu/submenu.component';
 import { WelcomedemoComponent } from './pages/welcomedemo/welcomedemo.component';
@@ -134,7 +133,7 @@ import { WelcomedemoComponent } from './pages/welcomedemo/welcomedemo.component'
   ],
   imports: [
     CommonModule,ReactiveFormsModule,FormsModule,
-    AdminRoutingModule,MatTabsModule,HttpClientModule
+    AdminRoutingModule,MatTabsModule
   ]
 })
 export class AdminModule { }
