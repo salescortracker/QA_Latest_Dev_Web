@@ -191,11 +191,26 @@ export interface AssetStatus {
   RegionID: number;
 }
 export interface PolicyCategory {
-  PolicyCategoryID?: number;
-  CompanyID: number;
-  RegionID: number;
+ PolicyCategoryId: number;
+  CompanyId: number;
+  RegionId: number;
   PolicyCategoryName: string;
+  Description?: string;
   IsActive: boolean;
+  UserId?: number;
+}
+export interface CompanyPolicy {
+  PolicyId: number;
+  CompanyId: number;
+  RegionId: number;
+  Title: string;
+  CategoryId: number;
+  CategoryName: string;
+  EffectiveDate: string; // ISO string
+  Description?: string;
+  File?: File | null;    // for upload
+  FileName?: string;
+  FilePath?: string;
 }
 export interface AttachmentType {
   AttachmentTypeID?: number;
@@ -348,14 +363,14 @@ export interface Gender {
   userId?: number;
 }
 
-export interface Region {
-  regionID: number;
-  companyID: number;
-  regionName: string;
-  country: string;
-  isActive: boolean;
-  userId?: number;
-}
+  export interface Region {
+    regionID: number;
+    companyID: number;
+    regionName: string;
+    country: string;
+    isActive: boolean;
+    userId?: number;
+  }
 export interface LeaveType {
   leaveTypeID: number;
   leaveTypeName: string;
@@ -1002,27 +1017,42 @@ deleteRelationship(id: number) {
  
   // Policy Category
 
-createPolicyCategory(policy: PolicyCategory) {
-  return this.http.post(`${this.baseUrl}/PolicyCategory`, policy);
+// createPolicyCategory(policy: PolicyCategory) {
+//   return this.http.post(`${this.baseUrl}/PolicyCategory`, policy);
+// }
+
+// updatePolicyCategory(id: number, policy: PolicyCategory) {
+//   return this.http.put(`${this.baseUrl}/PolicyCategory/${id}`, policy);
+// }
+
+// deletePolicyCategory(id: number) {
+//   return this.http.delete(`${this.baseUrl}/PolicyCategory/${id}`);
+// }
+
+// // Get policy categories by company and region
+//   getPolicyCategories(companyID: number, regionID: number): Observable<PolicyCategory[]> {
+//     let params = new HttpParams()
+//       .set('CompanyID', companyID.toString())
+//       .set('RegionID', regionID.toString());
+
+//     return this.http.get<PolicyCategory[]>(`${this.baseUrl}/PolicyCategory`, { params });
+//   }
+  
+getPolicyCategories(userId: number) {
+  return this.http.get(`${this.baseUrl}/MasterData/policy-category?userId=${userId}`);
 }
 
-updatePolicyCategory(id: number, policy: PolicyCategory) {
-  return this.http.put(`${this.baseUrl}/PolicyCategory/${id}`, policy);
+createPolicyCategory(data: any) {
+  return this.http.post(`${this.baseUrl}/MasterData/CreatePolicyCategory`, data);
+}
+
+updatePolicyCategory(data: any) {
+  return this.http.post(`${this.baseUrl}/MasterData/UpdatePolicyCategory`, data);
 }
 
 deletePolicyCategory(id: number) {
-  return this.http.delete(`${this.baseUrl}/PolicyCategory/${id}`);
+  return this.http.post(`${this.baseUrl}/MasterData/DeletePolicyCategory?id=${id}`, {});
 }
-
-// Get policy categories by company and region
-  getPolicyCategories(companyID: number, regionID: number): Observable<PolicyCategory[]> {
-    let params = new HttpParams()
-      .set('CompanyID', companyID.toString())
-      .set('RegionID', regionID.toString());
-
-    return this.http.get<PolicyCategory[]>(`${this.baseUrl}/PolicyCategory`, { params });
-  }
-  
 getAttachmentTypes(companyId: number, regionId: number) {
   return this.http.get<any>(`${this.baseUrl}/AttachmentType/Get?companyId=${companyId}&regionId=${regionId}`);
 }
@@ -1723,6 +1753,40 @@ bulkUploadCertificationTypes(data: CertificationType[]): Observable<any> {
   return path.split('/').pop() || 'download';
 }
 
+//------------------------------COMPANY POLICIES-------------------------------------//
+// Get all policies
+  getAllPolicies(): Observable<CompanyPolicy[]> {
+    return this.http.post<CompanyPolicy[]>(`${this.baseUrl}/Attendance/GetAllPolicies`, {});
+  }
 
+  // Get policy by ID
+  getPolicyById(id: number): Observable<CompanyPolicy> {
+    return this.http.post<CompanyPolicy>(`${this.baseUrl}/Attendance/GetPolicyById`, { PolicyId: id });
+  }
 
+  // Create policy
+  createPolicy(model: FormData): Observable<CompanyPolicy> {
+    return this.http.post<CompanyPolicy>(`${this.baseUrl}/Attendance/CreatePolicy`, model);
+  }
+
+  // Update policy
+  updatePolicy(model: FormData): Observable<CompanyPolicy> {
+    return this.http.post<CompanyPolicy>(`${this.baseUrl}/Attendance/UpdatePolicy`, model);
+  }
+
+  // Delete policy
+  deletePolicy(policyId: number): Observable<boolean> {
+    const formData = new FormData();
+    formData.append('policyId', policyId.toString());
+    return this.http.post<boolean>(`${this.baseUrl}/Attendance/DeletePolicy`, formData);
+  }
+
+  // Get policy categories dropdown
+  getPolicyCategoryDropdown(companyId: number, regionId: number): Observable<PolicyCategory[]> {
+    const formData = new FormData();
+    formData.append('companyId', companyId.toString());
+    formData.append('regionId', regionId.toString());
+    return this.http.post<PolicyCategory[]>(`${this.baseUrl}/Attendance/GetPolicyCategoryDropdown`, formData);
+  }
 }
+
