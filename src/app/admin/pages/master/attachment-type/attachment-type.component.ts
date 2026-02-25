@@ -5,16 +5,18 @@ import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { AdminService, AttachmentType } from '../../../servies/admin.service';
 import { NgxSpinnerService } from 'ngx-spinner';
+
 @Component({
   selector: 'app-attachment-type',
   standalone: false,
   templateUrl: './attachment-type.component.html',
   styleUrl: './attachment-type.component.css'
 })
-export class AttachmentTypeComponent {
-  companyId = 1;
-  regionId = 1;
+export class AttachmentTypeComponent implements OnInit {
 
+  companyId = sessionStorage.getItem('CompanyId') ? +sessionStorage.getItem('CompanyId')! : 0;
+  regionId = sessionStorage.getItem('RegionId') ? +sessionStorage.getItem('RegionId')! : 0;
+userId = sessionStorage.getItem('UserId') ? +sessionStorage.getItem('UserId')! : 0;
   attachment: AttachmentType = this.getEmptyAttachment();
   attachments: AttachmentType[] = [];
   attachmentsModel: any = {};
@@ -25,12 +27,15 @@ export class AttachmentTypeComponent {
   currentPage = 1;
   pageSize = 5;
 
-  sortColumn = 'AttachmentTypeID';
+  sortColumn = 'attachmentTypeId';
   sortDirection: 'asc' | 'desc' = 'desc';
 
   showUploadPopup = false;
 
-  constructor(private adminService: AdminService, private spinner: NgxSpinnerService) {}
+  constructor(
+    private adminService: AdminService,
+    private spinner: NgxSpinnerService
+  ) {}
 
   ngOnInit(): void {
     this.loadAttachments();
@@ -38,11 +43,13 @@ export class AttachmentTypeComponent {
 
   getEmptyAttachment(): AttachmentType {
     return {
-      AttachmentTypeID: 0,
-      AttachmentTypeName: '',
-      IsActive: true,
-      CompanyID: this.companyId,
-      RegionID: this.regionId
+      attachmentTypeId: 0,
+      attachmentCategory: '',   // ✅ Added
+      attachmentTypeName: '',
+      isActive: true,
+      companyId: this.companyId,
+      regionId: this.regionId,
+      userId : this.userId
     };
   }
 
@@ -50,6 +57,7 @@ export class AttachmentTypeComponent {
     this.spinner.show();
     this.adminService.getAttachmentTypes(this.companyId, this.regionId).subscribe({
       next: res => {
+         console.log("API Response:", res); 
         this.attachments = res.data?.data || res;
         this.spinner.hide();
       },
@@ -60,14 +68,18 @@ export class AttachmentTypeComponent {
     });
   }
 
-  // Create / Update
+  /** ======================
+   * Create / Update
+   * ====================== */
+
   onSubmit(): void {
     this.spinner.show();
+
     if (this.isEditMode) {
       this.adminService.updateAttachmentType(this.attachment).subscribe({
         next: () => {
           this.spinner.hide();
-          Swal.fire('Updated', `${this.attachment.AttachmentTypeName} updated successfully!`, 'success');
+          Swal.fire('Updated', `${this.attachment.attachmentTypeName} updated successfully!`, 'success');
           this.loadAttachments();
           this.resetForm();
         },
@@ -80,7 +92,7 @@ export class AttachmentTypeComponent {
       this.adminService.createAttachmentType(this.attachment).subscribe({
         next: () => {
           this.spinner.hide();
-          Swal.fire('Created', `${this.attachment.AttachmentTypeName} added successfully!`, 'success');
+          Swal.fire('Created', `${this.attachment.attachmentTypeName} added successfully!`, 'success');
           this.loadAttachments();
           this.resetForm();
         },
@@ -99,16 +111,16 @@ export class AttachmentTypeComponent {
 
   deleteAttachment(a: AttachmentType): void {
     Swal.fire({
-      title: `Delete ${a.AttachmentTypeName}?`,
+      title: `Delete ${a.attachmentTypeName}?`,
       showDenyButton: true,
       confirmButtonText: 'Confirm'
     }).then(result => {
       if (result.isConfirmed) {
         this.spinner.show();
-        this.adminService.deleteAttachmentType(a.AttachmentTypeID!).subscribe({
+        this.adminService.deleteAttachmentType(a.attachmentTypeId!).subscribe({
           next: () => {
             this.spinner.hide();
-            Swal.fire('Deleted', `${a.AttachmentTypeName} deleted successfully.`, 'success');
+            Swal.fire('Deleted', `${a.attachmentTypeName} deleted successfully.`, 'success');
             this.loadAttachments();
           },
           error: () => {
@@ -131,8 +143,13 @@ export class AttachmentTypeComponent {
 
   filteredAttachments(): AttachmentType[] {
     return this.attachments.filter(a => {
-      const matchesSearch = a.AttachmentTypeName.toLowerCase().includes(this.searchText.toLowerCase());
-      const matchesStatus = this.statusFilter === '' || a.IsActive === this.statusFilter;
+      const matchesSearch =
+        a.attachmentTypeName.toLowerCase().includes(this.searchText.toLowerCase()) ||
+        a.attachmentCategory?.toLowerCase().includes(this.searchText.toLowerCase()); // ✅ search category
+
+      const matchesStatus =
+        this.statusFilter === '' || a.isActive === this.statusFilter;
+
       return matchesSearch && matchesStatus;
     });
   }
@@ -179,15 +196,18 @@ export class AttachmentTypeComponent {
   /** ======================
    * Export
    * ====================== */
+
   exportAs(type: 'excel' | 'pdf') {
     type === 'excel' ? this.exportExcel() : this.exportPDF();
   }
 
   exportExcel() {
     const data = this.attachments.map(a => ({
-      'Attachment Type': a.AttachmentTypeName,
-      'Active': a.IsActive ? 'Yes' : 'No'
+      'Category': a.attachmentCategory,   // ✅ added
+      'Attachment Type': a.attachmentTypeName,
+      'Active': a.isActive ? 'Yes' : 'No'
     }));
+
     const ws = XLSX.utils.json_to_sheet(data);
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, 'Attachments');
@@ -196,14 +216,25 @@ export class AttachmentTypeComponent {
 
   exportPDF() {
     const doc = new jsPDF();
-    const data = this.attachments.map(a => [a.AttachmentTypeName, a.IsActive ? 'Yes' : 'No']);
-    autoTable(doc, { head: [['Attachment Type', 'Active']], body: data });
+
+    const data = this.attachments.map(a => [
+      a.attachmentCategory,  // ✅ added
+      a.attachmentTypeName,
+      a.isActive ? 'Yes' : 'No'
+    ]);
+
+    autoTable(doc, {
+      head: [['Category', 'Attachment Type', 'Active']],
+      body: data
+    });
+
     doc.save('AttachmentTypes.pdf');
   }
 
   /** ======================
    * Bulk Upload
    * ====================== */
+
   openUploadPopup() { this.showUploadPopup = true; }
   closeUploadPopup() { this.showUploadPopup = false; }
 
@@ -212,6 +243,7 @@ export class AttachmentTypeComponent {
       Swal.fire('Info', 'No valid data found in uploaded file.', 'info');
       return;
     }
+
     this.adminService.bulkInsertData('AttachmentType', data).subscribe({
       next: () => {
         Swal.fire('Success', 'Attachment Type data uploaded successfully!', 'success');

@@ -40,26 +40,25 @@ sortDirection: 'asc' | 'desc' = 'asc';
     this.companyId = Number(sessionStorage.getItem("CompanyId"));
     this.regionId = Number(sessionStorage.getItem("RegionId"));
     this.loadEmployeeLetters();
+    this.loadDocumentTypes();
   }
   
-   loadEmployeeLetters() {
+loadEmployeeLetters() {
   this.adminService.getEmployeeLettersByEmployeeId(this.userId).subscribe({
     next: (res) => {
-     this.letters = res.map((x: any) => ({
-      id: x.id,
-      documentType: this.getDocumentTypeName(x.documentTypeId),       // FIX
-      title: x.documentName,
-      empCode: x.employeeCode,
-      empName: x.employeeName,
-      issuedDate: x.issuedDate,
-      validityDate: x.validityDate,
-      fileName: x.fileName,
-      remarks: x.remarks,
-      confidential: x.isConfidential
-    }));
-
-    },
-    error: (err) => console.error(err)
+      this.letters = res.map((x: any) => ({
+        id: x.id,
+        documentType: String(x.documentTypeId), // 👈 FIX HERE
+        title: x.documentName,
+        empCode: x.employeeCode,
+        empName: x.employeeName,
+        issuedDate: x.issuedDate,
+        validityDate: x.validityDate,
+        fileName: x.fileName,
+        remarks: x.remarks,
+        confidential: x.isConfidential
+      }));
+    }
   });
 }
 
@@ -67,23 +66,40 @@ sortDirection: 'asc' | 'desc' = 'asc';
     this.adminService.ViewDocument(environment.LettersPath+path, download);
   }
 
-getDocumentTypeName(id: number): string {
-  const doc = this.documentTypes.find(d => d.id === id);
+getDocumentTypeName(id: string | number): string {
+  const numericId = Number(id);
+  const doc = this.documentTypes.find(d => d.id === numericId);
   return doc ? doc.typeName : '';
 }
 
   
+  // loadDocumentTypes() {
+  //   this.adminService.getActiveDocumentTypes().subscribe({
+  //     next: (res: any) => {
+  //       this.documentTypes = res;    
+  //       this.loadEmployeeLetters();
+  //     },
+  //     error: (err) => {
+  //       console.error('Failed to load document types', err);
+  //     }
+  //   });
+  // }
+
+
   loadDocumentTypes() {
-    this.adminService.getActiveDocumentTypes().subscribe({
-      next: (res: any) => {
-        this.documentTypes = res;    
-        this.loadEmployeeLetters();
+  this.adminService.getAttachmentTypesByCategory('Letters')
+    .subscribe({
+      next: (res: any[]) => {
+        this.documentTypes = res.map(x => ({
+          id: x.attachmentTypeId,
+          typeName: x.attachmentTypeName
+        }));
       },
       error: (err) => {
         console.error('Failed to load document types', err);
       }
     });
-  }
+}
 
   // ------------------------ SORTING -------------------------
   sortBy(column: keyof EmployeeLetter) {
