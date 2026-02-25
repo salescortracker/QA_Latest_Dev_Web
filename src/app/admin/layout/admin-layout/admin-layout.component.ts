@@ -46,6 +46,7 @@ export class AdminLayoutComponent {
        { title: 'Leave Status', route: '/admin/leave-status' },
       { title: 'Attendance Status', route: '/admin/attendance-status' },
       { title: 'Resignation Master', route: '/admin/resignationmaster' },
+      { title: 'Bank-Details', route: '/admin/bank-details' },
     ],
     'Configuration': [
       { title: 'Approval Workflows', route: '/admin/approval-workflow' },
