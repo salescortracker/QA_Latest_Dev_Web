@@ -1,0 +1,210 @@
+<div class="card shadow-sm">
+  <div class="card-body">
+
+    <!-- 🔹 Header -->
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <h4 class="fw-semibold mb-0">
+        <i class="fa-solid fa-building-columns me-2 text-primary"></i>
+        Account Type Management
+      </h4>
+
+      <div class="d-flex gap-2">
+        <div class="dropdown">
+          <button class="btn btn-outline-dark dropdown-toggle"
+                  type="button"
+                  data-bs-toggle="dropdown">
+            <i class="fa-solid fa-download me-2"></i> Export
+          </button>
+          <ul class="dropdown-menu dropdown-menu-end">
+            <li><a class="dropdown-item" (click)="exportAs('pdf')">Download PDF</a></li>
+            <li><a class="dropdown-item" (click)="exportAs('excel')">Download Excel</a></li>
+          </ul>
+        </div>
+
+        <button class="btn btn-danger"
+                (click)="openUploadPopup()">
+          Bulk Upload
+        </button>
+      </div>
+    </div>
+
+    <hr>
+
+    <!-- 🔹 Form Section -->
+    <form (ngSubmit)="onSubmit()" #accountForm="ngForm" class="row g-3 mb-4">
+
+      <div class="col-md-4">
+        <label class="form-label">Company</label>
+        <select class="form-select"
+                [(ngModel)]="accountType.companyId"
+                name="companyId">
+          <option value="0">-- Select Company --</option>
+          <option *ngFor="let c of companies"
+                  [value]="c.companyId">
+            {{ c.companyName }}
+          </option>
+        </select>
+      </div>
+
+      <div class="col-md-4">
+        <label class="form-label">Region</label>
+        <select class="form-select"
+                [(ngModel)]="accountType.regionId"
+                name="regionId">
+          <option value="0">-- Select Region --</option>
+          <option *ngFor="let r of regions"
+                  [value]="r.regionID">
+            {{ r.regionName }}
+          </option>
+        </select>
+      </div>
+
+      <div class="col-md-4">
+        <label class="form-label">Account Type Name</label>
+        <input type="text"
+               class="form-control"
+               [(ngModel)]="accountType.accountTypeName"
+               name="accountTypeName"
+               required>
+      </div>
+
+      <div class="col-md-6">
+        <label class="form-label">Description</label>
+        <input type="text"
+               class="form-control"
+               [(ngModel)]="accountType.description"
+               name="description">
+      </div>
+
+      <div class="col-md-3 d-flex align-items-center">
+  <div class="form-check form-switch mt-4">
+    <input
+      class="form-check-input"
+      type="checkbox"
+      id="accountIsActiveSwitch"
+      name="isActive"
+      [(ngModel)]="accountType.isActive"
+    />
+    <label class="form-check-label ms-2 fw-semibold"
+           for="accountIsActiveSwitch">
+      {{ accountType.isActive ? 'Active' : 'Inactive' }}
+    </label>
+  </div>
+</div>
+
+      
+      <div class="col-md-3 d-flex align-items-end gap-2">
+        <button type="submit"
+                class="btn btn-success w-100"
+                [disabled]="accountForm.invalid">
+          {{ isEditMode ? 'Update' : 'Save' }}
+        </button>
+
+        <button type="button"
+                class="btn btn-secondary w-100"
+                (click)="resetForm()">
+          Reset
+        </button>
+      </div>
+    </form>
+<hr>
+    <!-- 🔹 Search & Filter -->
+    <div class="row mb-3">
+      <div class="col-md-4">
+        <input type="text"
+               class="form-control"
+               placeholder="Search Account Type..."
+               [(ngModel)]="searchText">
+      </div>
+
+      <div class="col-md-3">
+        <select class="form-select"
+                [(ngModel)]="statusFilter">
+          <option value="">All Status</option>
+          <option [ngValue]="true">Active</option>
+          <option [ngValue]="false">Inactive</option>
+        </select>
+      </div>
+
+      <div class="col-md-2">
+        <select class="form-select"
+                (change)="changePageSize($event)">
+          <option value="5">5</option>
+          <option value="10" selected>10</option>
+          <option value="25">25</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- 🔹 Table -->
+    <div class="table-responsive">
+      <table class="table table-bordered table-hover align-middle">
+        <thead class="table-light">
+          <tr>
+            <th>ID</th>
+            <th>Account Type Name</th>
+            <th>Description</th>
+            <th>Status</th>
+            <th width="150">Actions</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          <tr *ngFor="let g of pagedAccountTypes">
+            <td>{{ g.accountTypeId }}</td>
+            <td>{{ g.accountTypeName }}</td>
+            <td>{{ g.description }}</td>
+            <td>
+              <span class="badge"
+                    [ngClass]="g.isActive ? 'bg-success' : 'bg-danger'">
+                {{ g.isActive ? 'Active' : 'Inactive' }}
+              </span>
+            </td>
+            <td>
+              <button class="btn btn-sm btn-outline-primary me-2"
+                      (click)="editAccountType(g)">
+                <i class="fa fa-edit"></i>
+              </button>
+
+              <button class="btn btn-sm btn-outline-danger"
+                      (click)="deleteAccountType(g)">
+                <i class="fa fa-trash"></i>
+              </button>
+            </td>
+          </tr>
+
+          <tr *ngIf="pagedAccountTypes?.length === 0">
+            <td colspan="5" class="text-center text-muted">
+              No records found
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- 🔹 Pagination -->
+    <nav *ngIf="totalPages > 1" class="mt-3">
+      <ul class="pagination justify-content-end">
+        <li class="page-item" [class.disabled]="currentPage === 1">
+          <a class="page-link" (click)="goToPage(currentPage - 1)">Previous</a>
+        </li>
+
+        <li class="page-item"
+            *ngFor="let page of [].constructor(totalPages); let i = index"
+            [class.active]="currentPage === i + 1">
+          <a class="page-link"
+             (click)="goToPage(i + 1)">
+            {{ i + 1 }}
+          </a>
+        </li>
+
+        <li class="page-item"
+            [class.disabled]="currentPage === totalPages">
+          <a class="page-link"
+             (click)="goToPage(currentPage + 1)">Next</a>
+        </li>
+      </ul>
+    </nav>
+
+  </div>
+</div>

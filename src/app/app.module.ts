@@ -96,6 +96,9 @@ import { EmployeeResignationDetailsComponent } from './features/employee-profile
 import { ForgotPasswordComponent } from './features/login/forgot-password/forgot-password.component';
 import { VerifyOtpComponent } from './features/login/verify-otp/verify-otp.component';
 import { ResetPasswordComponent } from './features/login/reset-password/reset-password.component';
+import { RaiseTicketComponent } from './features/helpdesk/raise-ticket/raise-ticket.component';
+import { MyTicketsComponent } from './features/helpdesk/my-tickets/my-tickets.component';
+import { ApproveTicketsComponent } from './features/helpdesk/approve-tickets/approve-tickets.component';
 @NgModule({
   declarations: [
     AppComponent,
@@ -186,6 +189,9 @@ import { ResetPasswordComponent } from './features/login/reset-password/reset-pa
     ForgotPasswordComponent,
     VerifyOtpComponent,
     ResetPasswordComponent
+    RaiseTicketComponent,
+    MyTicketsComponent,
+    ApproveTicketsComponent
     
   ],
   imports: [
