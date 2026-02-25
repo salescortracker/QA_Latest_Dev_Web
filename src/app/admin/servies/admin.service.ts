@@ -26,6 +26,15 @@ export interface BankDetails {
   micrcode?: string;
   upiid?: string;
 }
+
+export interface ResignationModel {
+  resignationId: number;
+  companyId: number;
+  regionId: number;
+  resignationType: string;
+  noticePeriodDays: number;
+  isActive: boolean;
+}
  // ------------------------------DD LIST-----------------------------------//
  export interface EmployeeDdlist {
  ddlistId: number;
@@ -1724,5 +1733,38 @@ bulkUploadCertificationTypes(data: CertificationType[]): Observable<any> {
 }
 
 
+//---------------------- RESIGNATIONS ----------------------//
 
+getResignations(companyId: number, regionId: number) {
+  return this.http.get<ResignationModel[]>(
+    `${this.baseUrl}/MasterData/GetResignations?companyId=${companyId}&regionId=${regionId}`
+  );
+}
+
+getResignationById(id: number) {
+  return this.http.get<ResignationModel>(
+    `${this.baseUrl}/MasterData/GetResignationById/${id}`
+  );
+}
+
+createResignation(formData: FormData, userId: number) {
+  return this.http.post(
+    `${this.baseUrl}/MasterData/CreateResignation?userId=${userId}`,
+    formData
+  );
+}
+
+updateResignation(id: number, formData: FormData, userId: number) {
+  return this.http.post(
+    `${this.baseUrl}/MasterData/UpdateResignation/${id}?userId=${userId}`,
+    formData
+  );
+}
+
+deleteResignation(id: number, userId: number) {
+  return this.http.post(
+    `${this.baseUrl}/MasterData/DeleteResignation/${id}?userId=${userId}`,
+    {}
+  );
+}
 }

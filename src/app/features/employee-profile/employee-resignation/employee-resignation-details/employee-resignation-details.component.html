@@ -1,4 +1,3 @@
-
 <!-- ✅ FORM SECTION -->
 <form #resignForm="ngForm" (ngSubmit)="saveResignation(resignForm)" novalidate>
     <!-- ROW 0: Employee Display Fields -->
@@ -21,16 +20,11 @@
         <div class="col-md-4">
             <label class="form-label">Resignation Type <span class="text-danger">*</span></label>
             <select class="form-select" [(ngModel)]="resignationModel.resignationType" name="resignationType" required
-                #resignationType="ngModel">
+                #resignationType="ngModel" (change)="onResignationTypeChange()">
                 <option value="">Select resignation type</option>
-                <option value="Voluntary">Voluntary</option>
-                <option value="Involuntary">Involuntary</option>
-                <option value="Termination">Termination</option>
-                <option value="Retirement">Retirement</option>
-                <option value="Contract Completion">Contract Completion</option>
-                <option value="Absconding">Absconding</option>
-                <option value="Mutual Separation">Mutual Separation</option>
-                <option value="Layoff / Redundancy">Layoff / Redundancy</option>
+                <option *ngFor="let type of resignationTypes" [value]="type.resignationType">
+                    {{ type.resignationType }}
+                </option>
             </select>
             <div *ngIf="resignationType.invalid && (resignationType.touched || formSubmitted)"
                 class="text-danger small mt-1">
