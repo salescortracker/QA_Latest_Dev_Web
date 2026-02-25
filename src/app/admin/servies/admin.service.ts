@@ -684,6 +684,29 @@ export class AdminService {
       catchError(this.handleError)
     );
   }
+  // SEND OTP
+forgotPassword(email: string) {
+  return this.http.post<any>(
+    `${this.baseUrl}/UserManagement/forgot-password`,
+    { email }
+  );
+}
+
+// VERIFY OTP
+verifyOtp(email: string, otp: string) {
+  return this.http.post<any>(
+    `${this.baseUrl}/UserManagement/verify-otp`,
+    { email, otp }
+  );
+}
+
+// RESET PASSWORD
+resetPassword(email: string, newPassword: string) {
+  return this.http.post<any>(
+    `${this.baseUrl}/UserManagement/reset-password`,
+    { email, newPassword }
+  );
+}
 
   private handleError(error: HttpErrorResponse) {
     console.error('Login API error:', error);

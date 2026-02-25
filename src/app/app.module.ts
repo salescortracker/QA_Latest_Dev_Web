@@ -93,6 +93,9 @@ import { ScreeningComponent } from './features/recruitment/screening/screening.c
 import { EmployeeResignationHrApprovalComponent } from './features/employee-profile/employee-resignation/employee-resignation-hr-approval/employee-resignation-hr-approval.component';
 import { EmployeeResignationManagerApprovalComponent } from './features/employee-profile/employee-resignation/employee-resignation-manager-approval/employee-resignation-manager-approval.component';
 import { EmployeeResignationDetailsComponent } from './features/employee-profile/employee-resignation/employee-resignation-details/employee-resignation-details.component';
+import { ForgotPasswordComponent } from './features/login/forgot-password/forgot-password.component';
+import { VerifyOtpComponent } from './features/login/verify-otp/verify-otp.component';
+import { ResetPasswordComponent } from './features/login/reset-password/reset-password.component';
 @NgModule({
   declarations: [
     AppComponent,
@@ -179,7 +182,10 @@ import { EmployeeResignationDetailsComponent } from './features/employee-profile
     ScreeningComponent,
     EmployeeResignationHrApprovalComponent,
     EmployeeResignationManagerApprovalComponent,
-    EmployeeResignationDetailsComponent
+    EmployeeResignationDetailsComponent,
+    ForgotPasswordComponent,
+    VerifyOtpComponent,
+    ResetPasswordComponent
     
   ],
   imports: [
