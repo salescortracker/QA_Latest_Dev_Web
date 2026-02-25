@@ -42,8 +42,14 @@ import { CompensationComponent } from './features/compensation/compensation/comp
 import { RecruitmentProcessComponent } from './features/recruitment/recruitment-process/recruitment-process.component';
 import { WelcomedemoComponent } from './admin/pages/welcomedemo/welcomedemo.component';
 import { ChangePasswordComponent } from './features/change-password/change-password.component';
+import { ForgotPasswordComponent } from './features/login/forgot-password/forgot-password.component';
+import { VerifyOtpComponent } from './features/login/verify-otp/verify-otp.component';
+import { ResetPasswordComponent } from './features/login/reset-password/reset-password.component';
 const routes: Routes = [
   { path: '', component: LoginComponent },
+  { path: 'forgot-password', component: ForgotPasswordComponent },
+{ path: 'verify-otp', component: VerifyOtpComponent },
+{ path: 'reset-password', component: ResetPasswordComponent },
   { path: 'dashboard', component: LayoutComponent },
   {path:'Welcomedemo',component:WelcomedemoComponent},
   {path : 'change-password', component : ChangePasswordComponent},
