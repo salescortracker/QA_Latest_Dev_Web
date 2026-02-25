@@ -68,9 +68,9 @@ export class AdminLayoutComponent {
     ],
     'Payroll': [
       { title: 'Earnings & Deductions', route: '/admin/earnings-deductions' },
-      { title: 'Tax Settings', route: '/admin/tax-settings' },
-      { title: 'Pay Groups', route: '/admin/pay-groups' },
-      { title: 'Payslip Template', route: '/admin/payslip-template' },
+      { title: 'Salary Structures', route: '/admin/tax-settings' },
+      { title: 'Assign Salary', route: '/admin/pay-groups' },
+      { title: 'Payrolls', route: '/admin/payslip-template' },
     ],
     'System & Security': [
       { title: 'Audit Logs', route: '/admin/audit-log' },
