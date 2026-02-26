@@ -74,12 +74,31 @@ this.loadgender();
     }
   }
 
-  edit(row: any) {
-    this.isEdit = true;
-    this.editId = row.familyId;
-    this.familyForm.patchValue(row);
-  }
+  // edit(row: any) {
+  //   this.isEdit = true;
+  //   this.editId = row.familyId;
+  //   this.familyForm.patchValue(row);
+  // }
 
+
+  edit(row: any) {
+  this.isEdit = true;
+  this.editId = row.familyId;
+  
+  // Find the gender ID from the gender name
+  const genderObj = this.genderList.find(g => g.genderName === row.gender);
+  
+  this.familyForm.patchValue({
+    name: row.name,
+    relationship: row.relationship,
+    dateofbirth: row.dateOfBirth,
+    gender: genderObj ? genderObj.genderID : row.gender, // Use ID, not name
+    occupation: row.occupation,
+    phone: row.phone,
+    address: row.address,
+    isDependent: row.isDependent
+  });
+}
   delete(id: number) {
     if (confirm('Are you sure?')) {
       this.empFamilyService.deleteempfamily(id).subscribe(() => {

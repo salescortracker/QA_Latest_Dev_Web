@@ -23,10 +23,11 @@
 
     <div class="form-group">
       <label>Gender<span class="required">*</span> </label>
-      <select formControlName="gender">
+     <select formControlName="gender">
         <option value="">Select gender</option>
-        <option *ngFor="let g of genderList" [value]="g.genderName">{{ g.genderName }}</option>
-       
+        <option *ngFor="let g of genderList" [value]="g.genderID">
+          {{ g.genderName }}
+        </option>
       </select>
     </div>
 

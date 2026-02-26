@@ -171,7 +171,7 @@ private apiadminUrl = environment.apiUrl + '/UserManagement';
    Getempgender(userId: number,companyId:number,regionId:number): Observable<any> {
     return this.http.get<any>(`${this.apiadminUrl}/GetAllgenderByUserAsync`,{
       params: {
-        userId: userId,
+      
         companyId: companyId,
         regionId: regionId
       }

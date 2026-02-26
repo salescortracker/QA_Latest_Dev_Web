@@ -61,12 +61,12 @@ regionMap: { [key: number]: string } = {};
   // 🔹 Load Genders
   // ------------------------------------------------------------
  loadGenders(): void {
-  debugger;
+ 
   this.spinner.show();
 
   this.adminservice.getGenders(this.companyId, this.regionId,this.userId).subscribe({
     next: (res: any) => {
-      debugger;
+     
       this.genders = res.data.map((g: Gender) => ({
   ...g,
   // companyName: this.companyMap[g.companyId] || 'N/A',
@@ -89,13 +89,13 @@ regionMap: { [key: number]: string } = {};
   // 🔹 Submit (Add / Update)
   // ------------------------------------------------------------
   onSubmit(): void {
-    debugger;
+
     this.spinner.show();
     if (this.isEditMode) {
       this.adminservice.updateGender(this.gender).subscribe({
         next: (res:any) => {
           this.spinner.hide();
-           debugger;
+      
           if(res.message.toLowerCase().includes('duplicate record found')) {
             Swal.fire('warning', res.message, 'warning');
             return;
@@ -113,7 +113,7 @@ regionMap: { [key: number]: string } = {};
       this.adminservice.createGender(this.gender).subscribe({
         next: (res:any) => {
           this.spinner.hide();
-          debugger;
+          
           if(res.message.toLowerCase().includes('duplicate record found')) {
             Swal.fire('warning', res.message, 'warning');
             return;
