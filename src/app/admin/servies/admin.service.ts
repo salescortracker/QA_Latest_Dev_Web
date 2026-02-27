@@ -273,6 +273,7 @@ export interface Company {
   headquarters?: string;
   isActive: boolean;
   userId?: number;
+ 
   CreatedBy?: string;
   CreatedDate?: Date;
   ModifiedBy?: string;
@@ -815,10 +816,13 @@ export class AdminService {
   return mapPermissions(rootMenus);
 }
 bulkInsertData(entityName: string, data: any[]): Observable<any> {
+
   const payload = {
-    entityName,
-    data
+    entityName: entityName,
+    data: data,
+    userId: Number(sessionStorage.getItem('UserId'))
   };
+
   return this.http.post(`${this.baseUrl}/UserManagement/BulkInsert`, payload);
 }
 // -------------------------------------------------------------
