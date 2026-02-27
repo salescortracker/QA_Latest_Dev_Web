@@ -3,19 +3,22 @@ import Swal from 'sweetalert2';
 import * as XLSX from 'xlsx';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
-import { AdminService,LeaveStatus } from '../../../servies/admin.service';
+import { AdminService, LeaveStatus } from '../../../servies/admin.service';
 import { NgxSpinnerService } from 'ngx-spinner';
+import { finalize } from 'rxjs/operators';
+
 @Component({
   selector: 'app-leave-status',
   standalone: false,
   templateUrl: './leave-status.component.html',
-  styleUrl: './leave-status.component.css'
+  styleUrls: ['./leave-status.component.css']
 })
 export class LeaveStatusComponent {
     leaveList: LeaveStatus[] = [];
   leave: LeaveStatus = this.getEmptyLeave();
 
   isEditMode = false;
+  isSubmitting = false;
 
   searchText = '';
   statusFilter: boolean | '' = '';
@@ -51,20 +54,19 @@ export class LeaveStatusComponent {
     this.loadLeaveStatus();
   }
 
- getEmptyLeave(): LeaveStatus {
-  return {
-    LeaveStatusID: 0,
-    LeaveStatusName: '',
-    Description: '',
-    isActive: true,
-    ModifiedBy: 0,
-    CompanyID: this.companyID,
-    RegionID: this.regionID,
-    CreatedBy: 0,
-    UserID: this.userId
-  } as any;
-}
-
+  getEmptyLeave(): LeaveStatus {
+    return {
+      leaveStatusID: 0,
+      leaveStatusName: '',
+      description: '',
+      isActive: true,
+      modifiedBy: 0,
+      companyID: this.companyID,
+      regionID: this.regionID,
+      createdBy: 0,
+      userID: this.userId
+    } as any;
+  }
 
   /* ================= LOAD ================= */
 
@@ -73,6 +75,7 @@ export class LeaveStatusComponent {
 
     this.adminService
       .getLeaveStatus(this.companyID, this.regionID)
+      .pipe(finalize(() => this.spinner.hide()))
       .subscribe({
         next: (res: any) => {
           if (res.success) {
@@ -81,10 +84,8 @@ export class LeaveStatusComponent {
           } else {
             Swal.fire('Warning', res.message, 'warning');
           }
-          this.spinner.hide();
         },
         error: (err) => {
-          this.spinner.hide();
           Swal.fire('Error', err?.error?.message || 'Failed to load data', 'error');
         }
       });
@@ -98,30 +99,34 @@ export class LeaveStatusComponent {
     this.leave.regionID = this.regionID;
     this.leave.userID = this.userId;
 
+    this.isSubmitting = true;
     this.spinner.show();
 
     const request = this.isEditMode
       ? this.adminService.updateLeaveStatus(this.leave.leaveStatusID, this.leave)
       : this.adminService.createLeaveStatus(this.leave);
 
-    request.subscribe({
-      next: (res: any) => {
-        if (res.success) {
-          Swal.fire('Success', res.message, 'success');
-          this.loadLeaveStatus();
-          form.resetForm();
-          this.leave = this.getEmptyLeave();
-          this.isEditMode = false;
-        } else {
-          Swal.fire('Warning', res.message, 'warning');
+    request
+      .pipe(finalize(() => {
+        this.spinner.hide();
+        this.isSubmitting = false;
+      }))
+      .subscribe({
+        next: (res: any) => {
+          if (res.success) {
+            Swal.fire('Success', res.message, 'success');
+            this.loadLeaveStatus();
+            form.resetForm();
+            this.leave = this.getEmptyLeave();
+            this.isEditMode = false;
+          } else {
+            Swal.fire('Warning', res.message, 'warning');
+          }
+        },
+        error: (err) => {
+          Swal.fire('Error', err?.error?.message || 'Unexpected error', 'error');
         }
-        this.spinner.hide();
-      },
-      error: (err) => {
-        this.spinner.hide();
-        Swal.fire('Error', err?.error?.message || 'Unexpected error', 'error');
-      }
-    });
+      });
   }
 
   /* ================= EDIT ================= */
@@ -145,16 +150,15 @@ export class LeaveStatusComponent {
 
         this.adminService
           .deleteLeaveStatus(item.leaveStatusID)
+          .pipe(finalize(() => this.spinner.hide()))
           .subscribe({
             next: (res: any) => {
               if (res.success) {
                 Swal.fire('Deleted!', res.message, 'success');
                 this.loadLeaveStatus();
               }
-              this.spinner.hide();
             },
             error: () => {
-              this.spinner.hide();
               Swal.fire('Error', 'Delete failed', 'error');
             }
           });
@@ -166,7 +170,7 @@ export class LeaveStatusComponent {
 
   filteredLeave(): LeaveStatus[] {
     return this.leaveList.filter(l =>
-      l.leaveStatusName.toLowerCase().includes(this.searchText.toLowerCase()) &&
+      l.leaveStatusName?.toLowerCase().includes(this.searchText.toLowerCase()) &&
       (this.statusFilter === '' || l.isActive === this.statusFilter)
     );
   }
@@ -200,8 +204,7 @@ export class LeaveStatusComponent {
 
   sortTable(column: string): void {
     if (this.sortColumn === column) {
-      this.sortDirection =
-        this.sortDirection === 'asc' ? 'desc' : 'asc';
+      this.sortDirection = this.sortDirection === 'asc' ? 'desc' : 'asc';
     } else {
       this.sortColumn = column;
       this.sortDirection = 'asc';
@@ -210,9 +213,50 @@ export class LeaveStatusComponent {
 
   getSortIcon(column: string): string {
     if (this.sortColumn !== column) return 'fa-sort';
-    return this.sortDirection === 'asc'
-      ? 'fa-sort-up'
-      : 'fa-sort-down';
+    return this.sortDirection === 'asc' ? 'fa-sort-up' : 'fa-sort-down';
+  }
+
+  /* ================= EXPORT ================= */
+
+  exportAs(type: 'pdf' | 'excel'): void {
+
+    const data = this.filteredLeave();
+
+    if (!data.length) {
+      Swal.fire('Info', 'No data to export', 'info');
+      return;
+    }
+
+    this.spinner.show();
+
+    setTimeout(() => {
+
+      if (type === 'excel') {
+        const worksheet = XLSX.utils.json_to_sheet(data);
+        const workbook = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(workbook, worksheet, 'LeaveStatus');
+        XLSX.writeFile(workbook, 'LeaveStatus.xlsx');
+      }
+
+      if (type === 'pdf') {
+        const doc = new jsPDF();
+
+        autoTable(doc, {
+          head: [['ID', 'Name', 'Description', 'Status']],
+          body: data.map(item => [
+            item.leaveStatusID,
+            item.leaveStatusName,
+            item.description,
+            item.isActive ? 'Active' : 'Inactive'
+          ])
+        });
+
+        doc.save('LeaveStatus.pdf');
+      }
+
+      this.spinner.hide();
+
+    }, 500);
   }
 
   /* ================= BULK ================= */
@@ -225,54 +269,27 @@ export class LeaveStatusComponent {
     this.showUploadPopup = false;
   }
 
-exportAs(type: 'pdf' | 'excel'): void {
+  onBulkUploadComplete(data: any): void {
 
-  const data = this.filteredLeave();
+    if (data && data.length > 0) {
 
-  if (!data.length) {
-    Swal.fire('Info', 'No data to export', 'info');
-    return;
+      this.spinner.show();
+
+      this.adminService.bulkInsertData('LeaveStatus', data)
+        .pipe(finalize(() => this.spinner.hide()))
+        .subscribe({
+          next: () => {
+            Swal.fire('Success', 'Leave Status uploaded successfully!', 'success');
+            this.loadLeaveStatus();
+            this.closeUploadPopup();
+          },
+          error: () => {
+            Swal.fire('Error', 'Failed to upload leave status.', 'error');
+          }
+        });
+
+    } else {
+      Swal.fire('Info', 'No valid data found in uploaded file.', 'info');
+    }
   }
-
-  if (type === 'excel') {
-    const worksheet = XLSX.utils.json_to_sheet(data);
-    const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, 'LeaveStatus');
-    XLSX.writeFile(workbook, 'LeaveStatus.xlsx');
-  }
-
-  if (type === 'pdf') {
-    const doc = new jsPDF();
-
-    autoTable(doc, {
-      head: [['ID', 'Name', 'Description', 'Status']],
-      body: data.map(item => [
-        item.leaveStatusID,
-        item.leaveStatusName,
-        item.description,
-        item.isActive ? 'Active' : 'Inactive'
-      ])
-    });
-
-    doc.save('LeaveStatus.pdf');
-  }
-}
-
- 
-   // Bulk Upload
- 
-   onBulkUploadComplete(data: any): void {
-     if (data && data.length > 0) {
-       this.adminService.bulkInsertData('LeaveStatus', data).subscribe({
-         next: () => {
-           Swal.fire('Success', 'Leave Status uploaded successfully!', 'success');
-           this.loadLeaveStatus();
-           this.closeUploadPopup();
-         },
-         error: () => Swal.fire('Error', 'Failed to upload leave status.', 'error')
-       });
-     } else {
-       Swal.fire('Info', 'No valid data found in uploaded file.', 'info');
-     }
-   }
 }
