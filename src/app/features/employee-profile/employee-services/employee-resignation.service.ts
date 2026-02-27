@@ -233,7 +233,21 @@ bulkReject(ids: number[]) {
 getUserLeaves(userId: number) {
   return this.http.get<any[]>(`${this.apiUrl}/GetUserLeaves/${userId}`);
 }
+getHolidays(companyId: number, regionId: number) {
+    return this.http.get(`${this.apiUrl}/Getholidaybycompanyidandregionid?CompanyID=${companyId}&RegionId=${regionId}`);
+  }
 
+  getBirthdays(companyId: number, regionId: number) {
+    return this.http.get(`${this.apiUrl}/birthdays?companyId=${companyId}&regionId=${regionId}`);
+  }
+
+  getApprovedLeaves(userId: number) {
+    return this.http.get(`${this.apiUrl}/approved-by-user/${userId}`);
+  }
+
+  getEvents(companyId: number, regionId: number) {
+    return this.http.get(`${this.apiUrl}/Geteventsbycompanyidandregionid?CompanyID=${companyId}&RegionId=${regionId}`);
+  }
 // get manager leaves (leaves of employees assigned to manager)
 getManagerLeaves(managerId: number) {
   return this.http.get<any[]>(`${this.apiUrl}/GetManagerLeaves/${managerId}`);

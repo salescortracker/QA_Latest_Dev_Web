@@ -1,5 +1,8 @@
 import { Component } from '@angular/core';
 import { Holiday } from '../../../layout/models/holiday-calendar.model';
+import { EmployeeResignation } from '../../../../features/employee-profile/employee-models/EmployeeResignation';
+import { EmployeeResignationService } from '../../../../features/employee-profile/employee-services/employee-resignation.service';
+import { forkJoin } from 'rxjs';
 @Component({
   selector: 'app-holiday-calendar',
   standalone: false,
@@ -8,25 +11,115 @@ import { Holiday } from '../../../layout/models/holiday-calendar.model';
 })
 export class HolidayCalendarComponent {
 holiday: Holiday = { HolidayDate: '', HolidayName: '', HolidayType: '', Description: '', IsActive: true };
-  holidays: Holiday[] = [];
+  // holidays: Holiday[] = [];
   isEditMode = false;
   searchText = '';
+companyId!: number;
+regionId!: number;
+userId!: number;
 
+birthdays: any[] = [];
+approvedLeaves: any[] = [];
+events: any[] = [];
+holidays: any[] = [];
   currentPage = 1;
   pageSize = 5;
-
+  
+  constructor(private calendarService: EmployeeResignationService) {}
   ngOnInit(): void {
-    this.loadHolidays();
-  }
+    const userData = sessionStorage.getItem('user');
 
-  loadHolidays() {
-    // Sample data – replace with API call
-    this.holidays = [
-      { HolidayID: 1, HolidayDate: '2025-01-01', HolidayName: 'New Year', HolidayType: 'Public', IsActive: true },
-      { HolidayID: 2, HolidayDate: '2025-08-15', HolidayName: 'Independence Day', HolidayType: 'Public', IsActive: true },
-      { HolidayID: 3, HolidayDate: '2025-10-02', HolidayName: 'Gandhi Jayanti', HolidayType: 'Public', IsActive: true }
-    ];
+  if (userData) {
+    const user = JSON.parse(userData);
+
+    this.companyId = user.companyId;
+    this.regionId = user.regionId;
+    this.userId = user.userId;
+
+    this.loadCalendarData();
   }
+  }
+// loadCalendarData() {
+//   this.calendarService.getHolidays(this.companyId, this.regionId)
+//     .subscribe((res: any) => {
+//       this.holidays = res.data;
+//     });
+
+//   this.calendarService.getBirthdays(this.companyId, this.regionId)
+//     .subscribe((res: any) => {
+//       this.birthdays = res.data;
+//     });
+
+//   this.calendarService.getApprovedLeaves(this.userId)
+//     .subscribe((res: any) => {
+//       this.approvedLeaves = res.data;
+//     });
+
+//   this.calendarService.getEvents(this.companyId, this.regionId)
+//     .subscribe((res: any) => {
+//       this.events = res.data;
+//     });
+// }
+
+loadCalendarData() {
+  debugger
+  forkJoin({
+    holidays: this.calendarService.getHolidays(this.companyId, this.regionId),
+    birthdays: this.calendarService.getBirthdays(this.companyId, this.regionId),
+    leaves: this.calendarService.getApprovedLeaves(this.userId),
+    events: this.calendarService.getEvents(this.companyId, this.regionId)
+  }).subscribe((res: any) => {
+
+    this.holidays = res.holidays.data;
+    this.birthdays = res.birthdays.data;
+    this.approvedLeaves = res.leaves.data;
+    this.events = res.events.data;
+
+    this.mergeCalendarData();
+  });
+}
+calendarEvents: any[] = [];
+getBirthdayThisYear(dob: string) {
+  const date = new Date(dob);
+  const today = new Date();
+  return new Date(today.getFullYear(), date.getMonth(), date.getDate());
+}
+mergeCalendarData() {
+  this.calendarEvents = [];
+
+  this.holidays.forEach(h => {
+    this.calendarEvents.push({
+      title: h.holidayName,
+      date: h.holidayDate,
+      type: 'Holiday'
+    });
+  });
+
+  this.birthdays.forEach(b => {
+    this.calendarEvents.push({
+      title: `🎂 ${b.firstName} Birthday`,
+      date: this.getBirthdayThisYear(b.dateOfBirth),
+      type: 'Birthday'
+    });
+  });
+
+  this.approvedLeaves.forEach(l => {
+    this.calendarEvents.push({
+      title: `🏖 Leave`,
+      date: l.appliedDate,
+      type: 'Leave'
+    });
+  });
+
+  this.events.forEach(e => {
+    this.calendarEvents.push({
+      title: e.eventName,
+      date: e.eventDate,
+      type: 'Event'
+    });
+  });
+}
+  
 
   onSubmit() {
     if (this.isEditMode) {
