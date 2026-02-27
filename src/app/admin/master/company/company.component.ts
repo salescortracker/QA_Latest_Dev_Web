@@ -273,18 +273,83 @@ toggleSort(column: string): void {
 }
 companyModel:any;
 openUploadPopup() {
-  this.companyModel = [ { companyName: 'ABC Technologies Pvt Ltd', companyCode: 'ABC001', industryType: 'IT Services', headquarters: 'Bangalore, India', isActive: true }, { companyName: 'Global Solutions Ltd', companyCode: 'GSL002', industryType: 'Manufacturing', headquarters: 'Mumbai, India', isActive: false } ];
+  this.companyModel = [
+    {
+      companyName: 'ABC Technologies Pvt Ltd',
+      companyCode: 'ABC001',
+      industryType: 'IT Services',
+      headquarters: 'Bangalore, India',
+      isActive: true
+    },
+    {
+      companyName: 'Global Solutions Ltd',
+      companyCode: 'GSL002',
+      industryType: 'Manufacturing',
+      headquarters: 'Mumbai, India',
+      isActive: false
+    }
+  ];
+
   this.showUploadPopup = false;
   setTimeout(() => {
     this.showUploadPopup = true;
   }, 0);
 }
 
-  handleBulkUpload(file: File) {
-    // Implement backend upload logic here
-    console.log('File received:', file.name);
-    this.showUploadPopup = false;
+handleBulkUpload(event: Event): void {
+
+  const input = event.target as HTMLInputElement;
+
+  if (!input.files || input.files.length === 0) {
+    Swal.fire('Error', 'No file selected', 'error');
+    return;
   }
+
+  const file = input.files[0];
+  const userId = Number(sessionStorage.getItem('UserId'));
+console.log("UserId from session:", userId);
+
+  const reader = new FileReader();
+
+  reader.onload = (e: any) => {
+
+    const workbook = XLSX.read(e.target.result, { type: 'binary' });
+    const sheetName = workbook.SheetNames[0];
+    const worksheet = workbook.Sheets[sheetName];
+
+    const jsonData = XLSX.utils.sheet_to_json(worksheet);
+
+    const userId = Number(sessionStorage.getItem('UserId'));
+
+    if (!userId) {
+      Swal.fire('Error', 'User not logged in properly.', 'error');
+      return;
+    }
+
+    // Attach userId to every record
+   const dataWithUser = jsonData.map((item: any) => ({
+  ...item,
+  UserId: userId
+}));
+
+    this.spinner.show();
+
+    this.adminservice.bulkInsertData('company', dataWithUser)
+      .subscribe({
+        next: (res: any) => {
+          this.spinner.hide();
+          Swal.fire('Success', res.message || 'Bulk upload successful!', 'success');
+          this.loadCompanies();
+        },
+        error: (err) => {
+          this.spinner.hide();
+          Swal.fire('Error', 'Bulk upload failed!', 'error');
+        }
+      });
+  };
+
+  reader.readAsBinaryString(file);
+}
 
   exportAs(type: 'pdf' | 'excel') {
     if (type === 'excel') this.exportExcel();
