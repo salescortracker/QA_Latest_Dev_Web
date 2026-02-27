@@ -36,34 +36,51 @@
     <!-- Blood Group Form -->
     <div class="card shadow-sm mb-4">
       <div class="card-body">
-        <form (ngSubmit)="onSubmit()" #bloodForm="ngForm" novalidate>
+        <form (ngSubmit)="onSubmit(bloodForm)" #bloodForm="ngForm" novalidate>
           <div class="row g-3">
             <!-- Blood Group Name -->
             <div class="col-md-6">
               <label class="form-label fw-semibold">Blood Group Name</label>
-              <input
-                type="text"
-                class="form-control"
-                name="bloodGroupName"
-                [(ngModel)]="bloodGroup.bloodGroupName"
-                placeholder="Enter Blood Group Name"
-                required
-              />
+           <input
+  type="text"
+  class="form-control"(input)="onBloodGroupInput()"
+  name="bloodGroupName"
+  [(ngModel)]="bloodGroup.bloodGroupName"
+  #bloodGroupName="ngModel"
+  placeholder="Enter Blood Group Name"
+  required
+  pattern="^(A|B|AB|O)[+-]$"
+/>
+
+<!-- Validation Messages -->
+<div class="text-danger mt-1" *ngIf="bloodGroupName.invalid && (bloodGroupName.dirty || bloodGroupName.touched)">
+
+  <small *ngIf="bloodGroupName.errors?.['required']">
+    Blood Group Name is required.
+  </small>
+
+  <small *ngIf="bloodGroupName.errors?.['pattern']">
+    Invalid Blood Group. Allowed values: A+, A-, B+, B-, AB+, AB-, O+, O-
+  </small>
+
+</div>
+
             </div>
  
             <!-- Status -->
             <div class="col-md-3 d-flex align-items-center">
               <div class="form-check form-switch mt-3">
-                <input
-                  class="form-check-input"
-                  type="checkbox"
-                  id="isActiveSwitch"
-                  name="isActive"
-                  [(ngModel)]="bloodGroup.isActive"
-                />
+              
+<input
+  class="form-check-input"
+  type="checkbox"
+  id="isActiveSwitch"
+  name="isActive"
+  [(ngModel)]="bloodGroup.isActive"
+/>
                 <label class="form-check-label ms-2" for="isActiveSwitch">
-                  {{ bloodGroup.isActive ? 'Active' : 'Inactive' }}
-                </label>
+  {{ bloodGroup.isActive ? 'Active' : 'Inactive' }}
+</label>
               </div>
             </div>
 
