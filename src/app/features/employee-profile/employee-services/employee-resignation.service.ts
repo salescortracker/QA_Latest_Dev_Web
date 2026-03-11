@@ -485,5 +485,10 @@ getResignationsForHR(): Observable<EmployeeResignation[]> {
   );
 }
 
+getResignationMaster(companyId: number, regionId: number) {
+  return this.http.get<any[]>(
+    `${this.apiUrl}/MasterData/GetResignations?companyId=${companyId}&regionId=${regionId}`
+  );
+}
     
 }

@@ -3,6 +3,7 @@ import { EmployeeResignationService } from '../../employee-services/employee-res
 import { EmployeeResignation } from '../../employee-models/EmployeeResignation';
 import { commonConstants } from '../../../../core/common';
 import { NgForm } from '@angular/forms';
+import { AdminService, ResignationModel } from '../../../../admin/servies/admin.service';
 type ColumnKey =
   | 'showIndex'
   | 'type'
@@ -18,7 +19,8 @@ type ColumnKey =
   styleUrl: './employee-resignation-details.component.css'
 })
 export class EmployeeResignationDetailsComponent {
- resignations: EmployeeResignation[] = [];
+  resignationTypes: ResignationModel[] = []; // fetched from master table
+  resignations: EmployeeResignation[] = [];
   filteredResignations: EmployeeResignation[] = [];
   resignationModel: EmployeeResignation = { resignationType: '' };
 
@@ -43,11 +45,29 @@ export class EmployeeResignationDetailsComponent {
 
   activeTab: 'list' | 'manager' | 'hr' = 'list';
 
-  constructor(private resignationService: EmployeeResignationService) {}
+  constructor(private resignationService: EmployeeResignationService, private adminService: AdminService) { }
 
   ngOnInit(): void {
     this.loadResignations();
+    this.loadResignationTypes();
   }
+  loadResignationTypes() {
+    this.adminService.getResignations(this.companyId, this.regionId).subscribe({
+      next: (res: ResignationModel[]) => {
+        // optionally filter active ones only
+        this.resignationTypes = res.filter(r => r.isActive);
+      },
+      error: (err) => console.error('Error loading resignation types:', err)
+    });
+  }
+ onResignationTypeChange() {
+  const selected = this.resignationTypes.find(r => r.resignationType === this.resignationModel.resignationType);
+  if (selected) {
+    this.resignationModel.noticePeriod = selected.noticePeriodDays.toString(); // convert number to string
+  } else {
+    this.resignationModel.noticePeriod = '';
+  }
+}
 
   loadResignations() {
     this.resignationService.getAll(this.companyId, this.regionId, this.roleId).subscribe({
@@ -186,27 +206,27 @@ export class EmployeeResignationDetailsComponent {
   }
 
   // ---------------- DELETE FIXED ----------------
-loadForManager() {
-  const managerUserId = Number(sessionStorage.getItem('UserId'));
-  this.resignationService
-    .getResignationsForManager(managerUserId) // ✅ pass companyId, regionId
-    .subscribe((res: EmployeeResignation[]) => {
-      this.filteredResignations = res;
-    });
-}
-deleteResignation(id: number) {
-  if (confirm('Are you sure you want to delete this resignation?')) {
+  loadForManager() {
+    const managerUserId = Number(sessionStorage.getItem('UserId'));
     this.resignationService
-      .delete(id, this.companyId, this.regionId, this.roleId) // pass all 4 args
-      .subscribe({
-        next: () => {
-          this.message = 'Resignation deleted successfully!';
-          this.loadResignations();
-        },
-        error: (err) => (this.message = 'Failed to delete resignation: ' + err.message),
+      .getResignationsForManager(managerUserId) // ✅ pass companyId, regionId
+      .subscribe((res: EmployeeResignation[]) => {
+        this.filteredResignations = res;
       });
   }
-}
+  deleteResignation(id: number) {
+    if (confirm('Are you sure you want to delete this resignation?')) {
+      this.resignationService
+        .delete(id, this.companyId, this.regionId, this.roleId) // pass all 4 args
+        .subscribe({
+          next: () => {
+            this.message = 'Resignation deleted successfully!';
+            this.loadResignations();
+          },
+          error: (err) => (this.message = 'Failed to delete resignation: ' + err.message),
+        });
+    }
+  }
 
 
   resetForm(form: NgForm) {
