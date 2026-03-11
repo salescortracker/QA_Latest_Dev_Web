@@ -35,20 +35,23 @@ companyId!: number;
   showUploadPopup = false;
   constructor(private admin: AdminService, private spinner: NgxSpinnerService) {}
 
-  ngOnInit(): void {
-     this.companyId = Number(sessionStorage.getItem("CompanyId"));
-    this.regionId = Number(sessionStorage.getItem("RegionId"));
-    this.loadExpenseCategory();
-    this.loadCompanies();
-    this.loadRegions();
-   
-  }
+ngOnInit(): void {
+
+  this.userId = Number(sessionStorage.getItem("UserId"));
+  this.companyId = Number(sessionStorage.getItem("CompanyId"));
+  this.regionId = Number(sessionStorage.getItem("RegionId"));
+
+  this.loadCompanies();
+  this.loadRegions();
+  this.loadExpenseCategory();
+}
+
 
    /* ------------------ Expense Category ------------------ */
 
   getEmptyExpenseCategory(): ExpenseCategory {
     return {
-      ExpenseCategoryID: 0,
+      expenseCategoryID: 0,
       expenseCategoryName: '',
       isActive: true,
       CompanyID: this.companyId,
@@ -57,14 +60,19 @@ companyId!: number;
       Description: ''
     };
   }
+  userId!: number;
 
   loadExpenseCategory(): void {
-    debugger;
+    // debugger;
     this.spinner.show();
 
-    this.admin.getexpensecategoryAll(this.companyId, this.regionId).subscribe({
+    this.admin.getexpensecategoryAll(
+ 
+  this.userId
+)
+.subscribe({
       next: res => {
-        debugger;
+        // debugger;
         this.expenseList = res.data;
         this.spinner.hide();
       },
@@ -76,7 +84,7 @@ companyId!: number;
   }
 
   onSubmit(): void {
-    debugger;
+    // debugger;
     this.spinner.show();
 
     this.expense.CompanyID = this.companyId;
@@ -84,7 +92,7 @@ companyId!: number;
 
     const request = this.isEditMode
       ? this.admin.updateexpensecategory(this.expense)
-      : this.admin.addexpenseCategory(this.expense);
+    : this.admin.addexpenseCategory(this.expense, this.userId);
 
     request.subscribe({
       next: () => {
@@ -110,27 +118,30 @@ companyId!: number;
   }
 
   deleteExpenseCategory(item: ExpenseCategory): void {
-    Swal.fire({
-      title: `Delete "${item.expenseCategoryName}"?`,
-      showCancelButton: true,
-      confirmButtonText: 'Delete'
-    }).then(result => {
-      if (result.isConfirmed) {
-        this.spinner.show();
-        this.admin.deleteExpenseCategoryType(item.ExpenseCategoryID).subscribe({
-          next: () => {
-            this.spinner.hide();
-            Swal.fire('Deleted', 'Expense Category deleted successfully.', 'success');
-            this.loadExpenseCategory();
-          },
-          error: () => {
-            this.spinner.hide();
-            Swal.fire('Error', 'Delete failed.', 'error');
-          }
-        });
-      }
-    });
-  }
+    console.log("Deleting ID:", item.expenseCategoryID);  // 👈 ADD THIS
+  Swal.fire({
+    title: `Delete "${item.expenseCategoryName}"?`,
+    showCancelButton: true,
+    confirmButtonText: 'Delete'
+  }).then(result => {
+    if (result.isConfirmed) {
+      this.spinner.show();
+      this.admin.deleteExpenseCategoryType(item.expenseCategoryID)
+.subscribe({
+        next: () => {
+          this.spinner.hide();
+          Swal.fire('Deleted', 'Expense Category deleted successfully.', 'success');
+          this.loadExpenseCategory();
+        },
+        error: () => {
+          this.spinner.hide();
+          Swal.fire('Error', 'Delete failed.', 'error');
+        }
+      });
+    }
+  });
+}
+
 
   resetForm(): void {
     this.expense = this.getEmptyExpenseCategory();
@@ -151,7 +162,7 @@ companyId!: number;
   }
 
   get pagedExpenseCategory(): ExpenseCategory[] {
-    debugger;
+    // debugger;
     const start = (this.currentPage - 1) * this.pageSize;
     return this.filteredExpenseCategory().slice(start, start + this.pageSize);
   }
@@ -234,14 +245,14 @@ sortTable(column: string): void {
   }
 }
   loadCompanies(): void {
-      this.admin.getCompanies().subscribe({
+    this.admin.getCompanies(undefined, this.userId).subscribe({
         next: (res:any) => (this.companies = res),
         error: () => Swal.fire('Error', 'Failed to load companies.', 'error')
       });
     }
 
     loadRegions(): void {
-      this.admin.getRegions().subscribe({
+     this.admin.getRegions(undefined, this.userId).subscribe({
         next: (res:any) => (this.regions = res),
         error: () => Swal.fire('Error', 'Failed to load regions.', 'error')
       });
