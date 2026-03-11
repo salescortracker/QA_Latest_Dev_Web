@@ -42,18 +42,14 @@
 
       <div class="col-md-2">
         <label>Start Time</label>
-        <input type="time" class="form-control"
-               [(ngModel)]="p.startTime"
-               name="start{{i}}"
-               (change)="calculateProjectHours(p)">
+        <input type="time" class="form-control" [(ngModel)]="p.startTime" name="start{{i}}"
+          (change)="calculateProjectHours(p)">
       </div>
 
       <div class="col-md-2">
         <label>End Time</label>
-        <input type="time" class="form-control"
-               [(ngModel)]="p.endTime"
-               name="end{{i}}"
-               (change)="calculateProjectHours(p)">
+        <input type="time" class="form-control" [(ngModel)]="p.endTime" name="end{{i}}"
+          (change)="calculateProjectHours(p)">
       </div>
 
       <div class="col-md-2">
@@ -63,11 +59,8 @@
 
       <div class="col-md-2">
         <label>OT Hours</label>
-        <input class="form-control"
-               [(ngModel)]="p.overtimeHours"
-               name="ot{{i}}"
-               placeholder="HH:MM or 1.5"
-               (change)="calculateProjectHours(p)">
+        <input class="form-control" [(ngModel)]="p.overtimeHours" name="ot{{i}}" placeholder="HH:MM or 1.5"
+          (change)="calculateProjectHours(p)">
       </div>
 
       <div class="col-md-1 text-center">
@@ -96,10 +89,29 @@
 <!-- ================= SUBMITTED LIST ================= -->
 <div class="dashboard-tables full-row mt-4">
   <div class="table-card">
-    <h3>Submitted Timesheets</h3>
-    <button class="btn btn-primary mb-2" (click)="sendSelectedTimesheets()">
-      <i class="fa-solid fa-paper-plane me-2"></i> Send Selected
-    </button>
+    <div class="d-flex justify-content-between align-items-start mb-3">
+
+      <!-- Left Side Heading -->
+      <h3 class="mb-0">Submitted Timesheets</h3>
+
+      <!-- Right Side Content -->
+      <div class="text-end">
+
+        <!-- Mandatory Instruction -->
+        <p class="text-danger fw-semibold mb-2">
+          Please click the button after selecting the timesheet for approval. 
+          <br/>
+           (The Timesheets will send to your reporting manager)
+        </p>
+
+        <!-- Send Button -->
+        <button class="btn btn-primary" (click)="sendSelectedTimesheets()">
+          <i class="fa-solid fa-paper-plane me-2"></i>
+          Send For Approval
+        </button>
+
+      </div>
+    </div>
 
     <table class="table table-bordered table-hover">
       <thead class="table-light">
@@ -178,9 +190,11 @@
         </label>
       </div>
       <div>
-        <button class="btn btn-outline-secondary btn-sm me-2" (click)="changePage(currentPage-1)" [disabled]="currentPage===1">Previous</button>
+        <button class="btn btn-outline-secondary btn-sm me-2" (click)="changePage(currentPage-1)"
+          [disabled]="currentPage===1">Previous</button>
         <span>Page {{ currentPage }} of {{ totalPages }}</span>
-        <button class="btn btn-outline-secondary btn-sm ms-2" (click)="changePage(currentPage+1)" [disabled]="currentPage===totalPages">Next</button>
+        <button class="btn btn-outline-secondary btn-sm ms-2" (click)="changePage(currentPage+1)"
+          [disabled]="currentPage===totalPages">Next</button>
       </div>
     </div>
   </div>
