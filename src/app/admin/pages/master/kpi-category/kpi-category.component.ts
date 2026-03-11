@@ -9,6 +9,7 @@ import autoTable from 'jspdf-autotable';
 export interface KpiCategoryView extends KpiCategory {
   companyName: string;
   regionName: string;
+   UserId?: number; 
 }
 @Component({
   selector: 'app-kpi-category',
@@ -37,6 +38,8 @@ regionMap: Record<number, string> = {};
 
   companyId: any = +(sessionStorage.getItem('CompanyId') || 0);
   regionId: any = +(sessionStorage.getItem('RegionId') || 0);
+  userId: number = Number(sessionStorage.getItem('UserId')) || 0;
+
 
   constructor(private adminService: AdminService, private spinner: NgxSpinnerService) { }
 
@@ -59,22 +62,23 @@ this.loadKpis();
       CompanyID: this.companyId,
       RegionID: this.regionId,
       companyName: this.companyMap[this.companyId] || '',
-      regionName: this.regionMap[this.regionId] || ''
+      regionName: this.regionMap[this.regionId] || '',
+      UserId: this.userId 
     };
   }
 
 loadCompanies(): void {
-  this.adminService.getCompanies().subscribe({
+  this.userId = Number(sessionStorage.getItem('UserId')) || 0;
+
+  this.adminService.getCompanies(null, this.userId).subscribe({
     next: (res: Company[]) => {
       this.companies = res || [];
       this.companyMap = {};
       this.companies.forEach(c => this.companyMap[c.companyId] = c.companyName);
 
-      // If a companyId is selected, load regions first
       if (this.companyId) {
         this.loadRegions();
       } else {
-        // If no company selected, still load KPIs
         this.loadKpis();
       }
     },
@@ -82,37 +86,38 @@ loadCompanies(): void {
   });
 }
 
+
 loadRegions(): void {
+
   if (!this.companyId) {
-    this.loadKpis();
+    this.regions = [];
     return;
   }
 
-  this.adminService.getRegions(this.companyId).subscribe({
+  this.adminService.getRegions(null, this.userId).subscribe({
     next: (res: Region[]) => {
-      this.regions = res || [];
+
+      // ✅ FILTER BY SELECTED COMPANY
+      this.regions = (res || []).filter(r => r.companyID == this.companyId);
+
       this.regionMap = {};
       this.regions.forEach(r => this.regionMap[r.regionID] = r.regionName);
 
-      // Set regionId from session or fallback to first region
-      if (!this.regionId || !this.regionMap[this.regionId]) {
-        this.regionId = this.regions.length > 0 ? this.regions[0].regionID : 0;
-      }
+      // Reset region selection
+      this.regionId = this.regions.length > 0 ? this.regions[0].regionID : 0;
       sessionStorage.setItem('RegionId', this.regionId.toString());
 
       this.kpi.RegionID = this.regionId;
-
-      // Now load KPIs
-      this.loadKpis();
     },
     error: () => Swal.fire('Error', 'Failed to load regions', 'error')
   });
 }
 
+
 loadKpis(): void {
   this.spinner.show();
 
-  this.adminService.getKpiCategories().subscribe({
+  this.adminService.getKpiCategories(this.userId).subscribe({
     next: (res: any) => {
       const data = res.data || [];
 
@@ -121,7 +126,7 @@ loadKpis(): void {
       const regionIds = Array.from(new Set(data.map((k: any) => k.regionID)));
 
       // Load regions for these IDs if regionMap is empty
-      this.adminService.getRegions().subscribe({
+      this.adminService.getRegions(null,this.userId).subscribe({
         next: (allRegions: Region[]) => {
           this.regionMap = {};
           allRegions.forEach(r => this.regionMap[r.regionID] = r.regionName);
@@ -196,6 +201,7 @@ onRegionChange(): void {
   onSubmit(): void {
     this.kpi.CompanyID = this.companyId;
     this.kpi.RegionID = this.regionId;
+    this.kpi.UserId = this.userId;
 
     this.spinner.show();
     const obs = this.isEditMode
@@ -225,15 +231,18 @@ onRegionChange(): void {
   this.loadRegionsForEdit();
 }
 loadRegionsForEdit(): void {
+
   if (!this.companyId) return;
 
-  this.adminService.getRegions(this.companyId).subscribe({
+  this.adminService.getRegions(null, this.userId).subscribe({
     next: (res: Region[]) => {
-      this.regions = res || [];
+
+      // ✅ FILTER BY COMPANY
+      this.regions = (res || []).filter(r => r.companyID == this.companyId);
+
       this.regionMap = {};
       this.regions.forEach(r => this.regionMap[r.regionID] = r.regionName);
 
-      // Make sure regionId exists in the list, fallback to first region
       if (!this.regionMap[this.regionId]) {
         this.regionId = this.regions.length > 0 ? this.regions[0].regionID : 0;
       }
@@ -243,6 +252,7 @@ loadRegionsForEdit(): void {
     error: () => Swal.fire('Error', 'Failed to load regions', 'error')
   });
 }
+
 
 
   deleteKpi(k: KpiCategoryView) {

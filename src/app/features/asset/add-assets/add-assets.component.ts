@@ -42,20 +42,22 @@ export class AddAssetsComponent {
   }
 
   // ================= LOAD EMPLOYEES & STATUSES =================
-  private loadEmployeesAndStatuses(): void {
-    // Load employees
-    this.assetService.getAllEmployees$().subscribe(empRes => {
+private loadEmployeesAndStatuses(): void {
+
+  this.assetService
+    .getEmployeesByCompanyRegion$(this.companyId, this.regionId)
+    .subscribe(empRes => {
+
       this.employees = empRes;
 
-      // Load statuses after employees
       this.assetService.getAssetStatuses$().subscribe(statusRes => {
         this.assetStatuses = statusRes;
-
-        // Finally load assets
         this.loadAssets();
       });
+
     });
-  }
+}
+
 
   // ================= SESSION =================
   private loadSessionData(): void {

@@ -1562,8 +1562,8 @@ downloadDDCopy(fileName: string): Observable<Blob> {
   }
 
   // ---------- KPI CATEGORY ----------
-getKpiCategories() {
-  return this.http.get(`${this.baseUrl}/MasterData/kpi-categories`);
+getKpiCategories(userId: number) {
+  return this.http.get(`${this.baseUrl}/MasterData/kpi-categories?userId=${userId}`);
 }
 
 getKpiCategoryById(id: number) {
