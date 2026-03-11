@@ -93,6 +93,12 @@ import { ScreeningComponent } from './features/recruitment/screening/screening.c
 import { EmployeeResignationHrApprovalComponent } from './features/employee-profile/employee-resignation/employee-resignation-hr-approval/employee-resignation-hr-approval.component';
 import { EmployeeResignationManagerApprovalComponent } from './features/employee-profile/employee-resignation/employee-resignation-manager-approval/employee-resignation-manager-approval.component';
 import { EmployeeResignationDetailsComponent } from './features/employee-profile/employee-resignation/employee-resignation-details/employee-resignation-details.component';
+import { ControlpanelDashboardComponent } from './AdminControlPanel/layouts/controlpanel-dashboard/controlpanel-dashboard.component';
+import { ControlpanelSidebarComponent } from './AdminControlPanel/layouts/controlpanel-sidebar/controlpanel-sidebar.component';
+import { ControlpanelTopbarComponent } from './AdminControlPanel/layouts/controlpanel-topbar/controlpanel-topbar.component';
+import { ControlpanelAdmlayoutComponent } from './AdminControlPanel/layouts/controlpanel-admlayout/controlpanel-admlayout.component';
+import { ConrolpanelFooterComponent } from './AdminControlPanel/layouts/conrolpanel-footer/conrolpanel-footer.component';
+import { ControlpanelUsersComponent } from './AdminControlPanel/layouts/controlpanel-users/controlpanel-users.component';
 import { RaiseTicketComponent } from './features/helpdesk/raise-ticket/raise-ticket.component';
 import { MyTicketsComponent } from './features/helpdesk/my-tickets/my-tickets.component';
 import { ApproveTicketsComponent } from './features/helpdesk/approve-tickets/approve-tickets.component';
@@ -183,6 +189,12 @@ import { ApproveTicketsComponent } from './features/helpdesk/approve-tickets/app
     EmployeeResignationHrApprovalComponent,
     EmployeeResignationManagerApprovalComponent,
     EmployeeResignationDetailsComponent,
+    ControlpanelDashboardComponent,
+    ControlpanelSidebarComponent,
+    ControlpanelTopbarComponent,
+    ControlpanelAdmlayoutComponent,
+    ConrolpanelFooterComponent,
+    ControlpanelUsersComponent
     RaiseTicketComponent,
     MyTicketsComponent,
     ApproveTicketsComponent
