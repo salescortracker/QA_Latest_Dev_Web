@@ -189,15 +189,23 @@ findParent(list: MenuItem[], child: MenuItem): MenuItem | null {
         Swal.fire(this.isEditMode ? 'Updated!' : 'Created!', `Role ${this.isEditMode ? 'updated' : 'created'} successfully.`, 'success');
         this.resetForm();
         this.loadRoles();
+         const modalEl = document.getElementById('addRoleModal');
+      const modal = (window as any).bootstrap.Modal.getInstance(modalEl);
+      modal?.hide();
       },
       error: () => Swal.fire('Error', `Failed to ${this.isEditMode ? 'update' : 'create'} role.`, 'error')
     });
   }
 
-  editRole(role: RoleMaster): void {
-    this.role = { ...role };
-    this.isEditMode = true;
-  }
+ editRole(role: RoleMaster): void {
+  this.role = { ...role };
+  this.isEditMode = true;
+
+  const modal = new (window as any).bootstrap.Modal(
+    document.getElementById('addRoleModal')
+  );
+  modal.show();
+}
 
   deleteRole(role: RoleMaster): void {
     Swal.fire({
