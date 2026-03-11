@@ -23,6 +23,7 @@ genderModel: any;
   currentPage = 1;
   Math = Math;
   regions:any;
+  filteredRegions: any[] = [];
   companies:any;
   userId: number = sessionStorage.getItem('UserId') ? Number(sessionStorage.getItem('UserId')) : 0;
   companyId:any=sessionStorage.getItem('CompanyId');
@@ -306,6 +307,18 @@ regionMap: { [key: number]: string } = {};
     return sorted.slice(start, start + this.pageSize);
   }
 
+  onCompanyChange(companyId: number): void {
+  this.gender.regionId = 0;
+
+  if (!companyId) {
+    this.filteredRegions = [];
+    return;
+  }
+
+  this.filteredRegions = this.regions.filter(
+    (r: any) => Number(r.companyID) === Number(companyId)
+  );
+}
   
     loadCompanies(): void {
   this.adminservice.getCompanies(null,this.userId).subscribe({
@@ -321,13 +334,10 @@ regionMap: { [key: number]: string } = {};
 }
 
 loadRegions(): void {
-  this.adminservice.getRegions(null,this.userId).subscribe({
+  this.adminservice.getRegions(null, this.userId).subscribe({
     next: (res: any[]) => {
       this.regions = res;
-      this.regionMap = {};
-      this.regions.forEach((r:any) => {
-        this.regionMap[r.regionID] = r.regionName;
-      });
+      this.filteredRegions = [];
     },
     error: () => Swal.fire('Error', 'Failed to load regions.', 'error')
   });

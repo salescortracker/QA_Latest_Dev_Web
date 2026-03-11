@@ -28,17 +28,15 @@ export class ShiftAllocationComponent {
 
   constructor(private fb: FormBuilder,private adminSvc: AdminService, private svc: EmployeeResignationService) {
     this.todayStr = formatDate(new Date(), 'yyyy-MM-dd', 'en-US');
-
-    this.currentUserId = +(sessionStorage.getItem('UserId') || '0');
-    this.currentUserCompanyId = +(sessionStorage.getItem('CompanyId') || '0');
-    this.currentUserRegionId = +(sessionStorage.getItem('RegionId') || '0');
   }
 
   ngOnInit(): void {
+    this.currentUserCompanyId = Number(sessionStorage.getItem('CompanyId') || 0);
+    this.currentUserRegionId = Number(sessionStorage.getItem('RegionId') || 0);
     
     this.initForm();
     this.loadLookups();
-    this.getallShifts();
+    this.loadShifts();
     this.loadAllocations();
    
   }
@@ -80,14 +78,21 @@ export class ShiftAllocationComponent {
 
     
   }
-  getallShifts(){
-    debugger;
-    this.svc.getAllShifts().subscribe(
-      (r:any) => this.shifts = r, 
-      (err:any) => console.error('Error loading shifts:', err)
-    );
-    
+  loadShifts() {
+  const companyId = Number(sessionStorage.getItem('CompanyId') || 0);
+  const regionId = Number(sessionStorage.getItem('RegionId') || 0);
+
+  if (!companyId || !regionId) {
+    Swal.fire('Error', 'Company or Region not found', 'error');
+    return;
   }
+
+  this.adminSvc.getShiftsForDropdown(companyId, regionId).subscribe({
+    next: (res: ShiftMasterDto[]) => this.shifts = res,
+    error: () => Swal.fire('Error', 'Failed to load shifts', 'error')
+  });
+}
+
 
   loadAllocations() {
     this.loading = true;

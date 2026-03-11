@@ -13,7 +13,8 @@ import { NgxSpinnerService } from 'ngx-spinner';
 })
 export class LeaveTypeComponent {
    companies: Company[] = [];
-  regions: Region[] = [];
+  regions:any;
+filteredRegions: any[] = [];
 companyLoaded = false;
 
   companyId: number = Number(sessionStorage.getItem('CompanyId')) || 0;
@@ -23,7 +24,7 @@ companyMap: { [key: number]: string } = {};
   leave: any = this.getEmptyLeaveType();
   
   leaveTypeList: LeaveType[] = [];
-
+  userId: number = sessionStorage.getItem('UserId') ? Number(sessionStorage.getItem('UserId')) : 0;
   isEditMode = false;
   searchText = '';
   statusFilter: boolean | '' = '';
@@ -63,25 +64,6 @@ getEmptyLeaveType(): any {
   };
 }
 
-  
-
-
-  // ================= DROPDOWN EVENTS =================
-  onCompanyChange(): void {
-    sessionStorage.setItem('CompanyId', this.companyId.toString());
-
-    this.regionId = 0;
-    this.regions = [];
-    this.leave.CompanyID = this.companyId;
-
-    this.loadRegions();
-  }
-
-  onRegionChange(): void {
-    sessionStorage.setItem('RegionId', this.regionId.toString());
-    this.leave.RegionID = this.regionId;
-    this.loadLeaveType();
-  }
 
   // ================= CRUD =================
 loadLeaveType(): void {
@@ -295,17 +277,34 @@ onBulkUploadComplete(event: any) {
   this.closeUploadPopup();
   this.loadLeaveType();
 }
-loadCompanies(): void {
-    this.admin.getCompanies().subscribe({
+onCompanyChange(companyId: number): void {
+  this.regionId = 0;
+  this.leave.regionId = 0;
+
+  if (!companyId) {
+    this.filteredRegions = [];
+    return;
+  }
+
+  this.filteredRegions = this.regions.filter(
+    (r: any) => Number(r.companyID) === Number(companyId)
+  );
+}
+  loadCompanies(): void {
+    debugger;
+    this.admin.getCompanies(null,this.userId).subscribe({
       next: (res:any) => (this.companies = res),
       error: () => Swal.fire('Error', 'Failed to load companies.', 'error')
     });
   }
 
   loadRegions(): void {
-    this.admin.getRegions().subscribe({
-      next: (res:any) => (this.regions = res),
-      error: () => Swal.fire('Error', 'Failed to load regions.', 'error')
-    });
+    this.admin.getRegions(null, this.userId).subscribe({
+    next: (res: any) => {
+      this.regions = res;
+      this.filteredRegions = [];
+    },
+    error: () => Swal.fire('Error', 'Failed to load regions.', 'error')
+  });
   }
 }
