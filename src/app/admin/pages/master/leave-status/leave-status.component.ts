@@ -12,10 +12,10 @@ import { NgxSpinnerService } from 'ngx-spinner';
   styleUrl: './leave-status.component.css'
 })
 export class LeaveStatusComponent {
-  companyId = 1;
-  regionId = 1;
-
-  leave: LeaveStatus = this.getEmptyLeave();
+  companyId!: number;
+regionId!: number;
+userId!: number;
+leave!: LeaveStatus;
   leaveList: LeaveStatus[] = [];
   leaveModel: any = {};
 
@@ -34,6 +34,13 @@ export class LeaveStatusComponent {
   constructor(private admin: AdminService, private spinner: NgxSpinnerService) {}
 
   ngOnInit(): void {
+    this.companyId = Number(sessionStorage.getItem('CompanyId'));
+this.regionId = Number(sessionStorage.getItem('RegionId'));
+this.userId = Number(sessionStorage.getItem('UserId'));
+
+  console.log("Company:", this.companyId, "Region:", this.regionId);
+    this.leave = this.getEmptyLeave(); // ✅ ADD THIS LINE
+
     this.loadLeaveStatus();
   }
 
@@ -49,22 +56,37 @@ export class LeaveStatusComponent {
   }
 
   /** Load Data */
-  loadLeaveStatus(): void {
-    this.spinner.show();
-    this.admin.getLeaveStatus(this.companyId, this.regionId).subscribe({
-      next: res => {
-        this.leaveList = res.data?.data || res;
-        this.spinner.hide();
-      },
-      error: () => {
-        this.spinner.hide();
-        Swal.fire('Error', 'Failed to load Leave Status.', 'error');
-      }
-    });
-  }
+ loadLeaveStatus(): void {
+  debugger;
+  this.spinner.show();
+
+  this.admin.getLeaveStatus(this.userId).subscribe({
+    next: res => {
+      console.log("API RESPONSE:", res);
+
+      this.leaveList = (res.data || []).map((x: any) => ({
+        LeaveStatusID: x.leaveStatusId,
+        LeaveStatusName: x.leaveStatusName,
+        IsActive: x.isActive,
+        CompanyID: x.companyId,
+        RegionID: x.regionId
+      }));
+
+      this.spinner.hide();
+    },
+    error: err => {
+      console.error(err);
+      this.spinner.hide();
+      Swal.fire('Error', 'Failed to load Leave Status.', 'error');
+    }
+  });
+}
+
 
   /** Submit Create / Update */
   onSubmit(): void {
+      this.leave.CompanyID = this.companyId;
+  this.leave.RegionID = this.regionId;
     this.spinner.show();
     if (this.isEditMode) {
       this.admin.updateLeaveStatus(this.leave).subscribe({
@@ -80,6 +102,7 @@ export class LeaveStatusComponent {
         }
       });
     } else {
+      debugger;
       this.admin.createLeaveStatus(this.leave).subscribe({
         next: () => {
           this.spinner.hide();
@@ -87,10 +110,19 @@ export class LeaveStatusComponent {
           this.loadLeaveStatus();
           this.resetForm();
         },
-        error: () => {
-          this.spinner.hide();
-          Swal.fire('Error', 'Create failed.', 'error');
-        }
+        error: err => {
+            if (err.status === 200 || err.status === 204) {
+              this.spinner.hide();
+              Swal.fire('Created', 'Leave Status created successfully!', 'success');
+              this.loadLeaveStatus();
+              this.resetForm();
+              return;
+            }
+
+  this.spinner.hide();
+  Swal.fire('Error', 'Create failed.', 'error');
+}
+
       });
     }
   }

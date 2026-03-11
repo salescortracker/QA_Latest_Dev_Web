@@ -1115,28 +1115,45 @@ deleteAttendanceStatus(id: number) {
 // ================= LEAVE STATUS ===================
 
 // Get All
-getLeaveStatus(companyId: number, regionId: number) {
+getLeaveStatus( userId:number) {
   return this.http.get<any>(
-    `${this.baseUrl}/LeaveStatus/GetLeaveStatus?CompanyID=${companyId}&RegionID=${regionId}`
+    `${this.baseUrl}/MasterData/GetLeaveStatus?UserID=${userId}`
   );
 }
 
 // Create
 createLeaveStatus(data: LeaveStatus) {
-  return this.http.post<any>(`${this.baseUrl}/LeaveStatus/CreateLeaveStatus`, data);
+  const userId = sessionStorage.getItem("UserId");
+
+  return this.http.post<any>(
+    `${this.baseUrl}/MasterData/CreateLeaveStatus?userId=${userId}`,
+    data
+  );
 }
+
 
 // Update
 updateLeaveStatus(data: LeaveStatus) {
-  return this.http.put<any>(`${this.baseUrl}/LeaveStatus/UpdateLeaveStatus`, data);
+  const userId = sessionStorage.getItem("UserId");
+
+  return this.http.put<any>(
+    `${this.baseUrl}/MasterData/UpdateLeaveStatus`,
+    data,
+    { headers: { UserId: userId! } }
+  );
 }
+
 
 // Delete
 deleteLeaveStatus(id: number) {
+  const userId = sessionStorage.getItem("UserId");
+
   return this.http.delete<any>(
-    `${this.baseUrl}/LeaveStatus/DeleteLeaveStatus?LeaveStatusID=${id}`
+    `${this.baseUrl}/MasterData/DeleteLeaveStatus?LeaveStatusID=${id}`,
+    { headers: { UserId: userId! } }
   );
 }
+
 
  getLeaveType(): Observable<LeaveType[]> {
     return this.http.get<LeaveType[]>(`${this.baseUrl}/MasterData/GetLeaveType`);
