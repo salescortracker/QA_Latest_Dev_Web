@@ -116,6 +116,7 @@ const routes: Routes = [
 { path: 'region', component: RegionComponent },  
 { path: 'users', component: UsersComponent },  
 { path: 'menumaster', component: MenusComponent },  
+{path : 'company-news-category', component : CompanyNewsComponent},
 {path : 'bank-details', component: BankDetailComponent},
 
       // Add more admin pages here

@@ -1,4 +1,5 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
+import { AdminService } from '../../../admin/servies/admin.service';
 interface NewsItem {
   Title: string;
   Category: string;
@@ -11,86 +12,53 @@ interface NewsItem {
   templateUrl: './comany-news.component.html',
   styleUrl: './comany-news.component.css'
 })
-export class ComanyNewsComponent {
- // Array to store all news
-  newsList: NewsItem[] = [
-    {
-      Title: '🎉 Annual Employee Awards 2025 Announced!',
-      Category: 'Achievements',
-      Description: 'Congratulations to all award winners for their exceptional contributions. The award ceremony photos and certificates will be shared by HR.',
-      Date: new Date('2025-10-15')
-    },
-    {
-      Title: '📢 Office Renovation Schedule – Phase 2',
-      Category: 'Announcements',
-      Description: 'The next phase of our office renovation will begin on 20th October. Some workstations will be temporarily shifted to the west wing. Please cooperate during this time.',
-      Date: new Date('2025-10-10')
-    },
-    {
-      Title: '📢 Office Renovation Schedule – Phase 2',
-      Category: 'Announcements',
-      Description: 'The next phase of our office renovation will begin on 20th October. Some workstations will be temporarily shifted to the west wing. Please cooperate during this time.',
-      Date: new Date('2025-10-10')
-    }
-  ];
+export class CompanyNewsEmpComponent implements OnInit {
 
-  // Current news model for add/edit
-  news: NewsItem = this.resetNews();
-  isEditMode: boolean = false;
-  editIndex: number | null = null;
+  newsList: NewsItem[] = []; // filtered news
+  categories: string[] = [];
 
-  // Filter fields
   searchCategory: string = '';
   searchDate: string = '';
 
-  categories: string[] = ['Announcements', 'HR Policy', 'Events', 'Achievements', 'General Updates'];
+  constructor(private adminService: AdminService) {}
 
-  // Reset form model
-  resetNews(): NewsItem {
-    return {
-      Title: '',
-      Category: '',
-      Description: '',
-      Date: new Date()
-    };
+  ngOnInit(): void {
+    this.loadCategories(); // load categories dynamically
+    // Do NOT load news initially!
   }
 
-  // Add or update news
-  onSubmit() {
-    if (this.isEditMode && this.editIndex !== null) {
-      this.newsList[this.editIndex] = { ...this.news };
-    } else {
-      this.newsList.push({ ...this.news });
+  // Load categories dynamically from departments table
+  loadCategories() {
+    this.adminService.getallDepartments().subscribe({
+      next: (res) => {
+        this.categories = Array.from(
+          new Set(res.filter(d => d.isActive && d.description).map(d => d.description!))
+        );
+      },
+      error: (err) => console.error('Error fetching categories', err)
+    });
+  }
+
+  // Load filtered news from backend based on selected category & date
+  loadFilteredNews() {
+    if (!this.searchCategory && !this.searchDate) {
+      this.newsList = [];
+      return; // do nothing if no filter selected
     }
-    this.resetForm();
-  }
 
-  // Edit existing news
-  editNews(n: NewsItem) {
-    this.isEditMode = true;
-    this.editIndex = this.newsList.indexOf(n);
-    this.news = { ...n };
-  }
+    const category = this.searchCategory || undefined;
+    const date = this.searchDate || undefined;
 
-  // Delete news
-  deleteNews(n: NewsItem) {
-    const index = this.newsList.indexOf(n);
-    if (index > -1) this.newsList.splice(index, 1);
-  }
-
-  // Reset form
-  resetForm() {
-    this.news = this.resetNews();
-    this.isEditMode = false;
-    this.editIndex = null;
-  }
-
-  // Filter news by category and date
-  filteredNews(): NewsItem[] {
-    return this.newsList.filter(n => {
-      const matchesCategory = this.searchCategory ? n.Category === this.searchCategory : true;
-      const matchesDate = this.searchDate ? new Date(n.Date).toDateString() === new Date(this.searchDate).toDateString() : true;
-      return matchesCategory && matchesDate;
+    this.adminService.getFilteredNews(category, date).subscribe({
+      next: (res: any[]) => {
+        this.newsList = res.map(n => ({
+          Title: n.title,
+          Category: n.category,
+          Description: n.description,
+          Date: n.displayDate ? new Date(n.displayDate) : new Date()
+        }));
+      },
+      error: (err) => console.error('Error fetching filtered news', err)
     });
   }
 }

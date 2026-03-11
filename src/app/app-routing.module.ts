@@ -33,7 +33,6 @@ import { AssetManagementComponent } from './features/asset/asset-management/asse
 import { TimesheetManagementComponent } from './features/timesheet/timesheet-management/timesheet-management.component';
 import { KpiPerformanceComponent } from './features/performance/kpi-performance/kpi-performance.component';
 import { HelpDeskManagementComponent } from './features/helpdesk/help-desk-management/help-desk-management.component';
-import { ComanyNewsComponent } from './features/company-news/comany-news/comany-news.component';
 import { EmployeePolicyComponent } from './features/company-policies/employee-policy/employee-policy.component';
 import { MyTeamHierarchyComponent } from './features/my-team/my-team-hierarchy/my-team-hierarchy.component';
 import { MyCalendarComponent } from './features/my-calendar/my-calendar/my-calendar.component';
@@ -42,6 +41,8 @@ import { CompensationComponent } from './features/compensation/compensation/comp
 import { RecruitmentProcessComponent } from './features/recruitment/recruitment-process/recruitment-process.component';
 import { WelcomedemoComponent } from './admin/pages/welcomedemo/welcomedemo.component';
 import { ChangePasswordComponent } from './features/change-password/change-password.component';
+import { CompanyNewsEmpComponent } from './features/company-news/comany-news/comany-news.component';
+
 const routes: Routes = [
   { path: '', component: LoginComponent },
   { path: 'dashboard', component: LayoutComponent },
@@ -72,9 +73,9 @@ const routes: Routes = [
 { path: 'expenses', component: ExpenseManagementComponent },
 { path: 'asset', component: AssetManagementComponent },
 { path: 'timesheet', component: TimesheetManagementComponent },
+{path : 'company-news', component : CompanyNewsEmpComponent},
 { path: 'kpi-performance', component: KpiPerformanceComponent },
 { path: 'help-desk', component: HelpDeskManagementComponent },
-{ path: 'company-news', component: ComanyNewsComponent },
 { path: 'company-policies', component: EmployeePolicyComponent },
 { path: 'my-team', component: MyTeamHierarchyComponent },
 { path: 'my-event', component: MyEventsComponent },
